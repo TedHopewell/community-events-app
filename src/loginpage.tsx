@@ -13,7 +13,7 @@ export default function Loginpage() {
 
 
           <View style={styles.logoContainer}>
-            <Text>Welcome Back</Text>
+            <Text style={styles.welcometxt}>Welcome Back</Text>
               <Image></Image>
           </View>
 
@@ -65,6 +65,14 @@ const styles = StyleSheet.create({
   logoContainer:{
     flex:3,
     backgroundColor:'#cd2d2dff',
+    paddingTop:20
+  },
+  welcometxt:{
+    color:'black',
+    fontWeight:'bold',
+    textAlign:'center',
+    fontSize:30,
+    paddingTop:30
   },
   loginbuttons:{
     flex:1,
@@ -77,9 +85,7 @@ const styles = StyleSheet.create({
     alignItems:"center",
     borderWidth:2,
     borderRadius:50,
-    width:deviceWidth-150,
-
-    
+    width:deviceWidth-150, 
   },
   btnText:{
     paddingHorizontal:20,
