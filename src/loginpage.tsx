@@ -84,16 +84,16 @@ const styles = StyleSheet.create({
 
   inputBox:{
     flexDirection:'column',
-    justifyContent:'space-between',
-        backgroundColor:'#ffffff',
+  
     paddingVertical:20,
-    marginTop:20,
 
   },
 
   logindetails:{
     borderBottomWidth:1,
     padding:10,
+    backgroundColor:'white',
+    marginTop:20,
 
   },
 
