@@ -84,7 +84,6 @@ const styles = StyleSheet.create({
 
   inputBox:{
     flexDirection:'column',
-  
     paddingVertical:20,
 
   },
