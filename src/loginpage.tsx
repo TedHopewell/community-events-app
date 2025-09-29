@@ -14,7 +14,11 @@ export default function Loginpage() {
 
           <View style={styles.logoContainer}>
             <Text style={styles.welcometxt}>Welcome Back</Text>
-              <Image></Image>
+            <View style={styles.inputBox}>
+              <TextInput style={styles.logindetails} placeholder="Username"></TextInput>
+              <TextInput style={styles.logindetails} placeholder="Password"></TextInput>
+
+            </View>
           </View>
 
           <View style={styles.loginbuttons}>
@@ -58,14 +62,16 @@ const deviceWidth = Math.round(Dimensions.get('window').width);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    flexDirection:"column",
     backgroundColor: 'rgba(192, 230, 204, 0.6)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   logoContainer:{
     flex:3,
-    backgroundColor:'#cd2d2dff',
-    paddingTop:20
+    paddingTop:20,
+    justifyContent:'space-between',
+    width:deviceWidth-80,
   },
   welcometxt:{
     color:'black',
@@ -74,6 +80,25 @@ const styles = StyleSheet.create({
     fontSize:30,
     paddingTop:30
   },
+
+
+  inputBox:{
+    flexDirection:'column',
+    justifyContent:'space-between',
+        backgroundColor:'#ffffff',
+    paddingVertical:20,
+    marginTop:20,
+
+  },
+
+  logindetails:{
+    borderBottomWidth:1,
+    padding:10,
+
+  },
+
+
+
   loginbuttons:{
     flex:1,
     paddingVertical:30,
