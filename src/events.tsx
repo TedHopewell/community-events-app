@@ -10,7 +10,7 @@ export default function EventsScreen() {
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <View style={styles.topContainer}>
-         <Text style={styles.Logopart}>E.</Text>
+         <Text style={styles.Logopart}>E<Text style={styles.logodot}>.</Text></Text>
          <View style={styles.topTextContainer}>
                        <Text style={styles.welcometext}>Welcome back</Text><Text style={styles.name}>Hopewell</Text>
 
@@ -20,7 +20,11 @@ export default function EventsScreen() {
          </Image>
       </View>
       <View style={styles.middleContainer}>
-        
+
+            <View style={styles.eventCard}>
+
+            </View>
+
       </View>
       <View style={styles.bottomContainer}>
 
@@ -50,9 +54,12 @@ const styles = StyleSheet.create({
     
   },
   Logopart:{
-    fontWeight:'bold',
+    fontWeight:'600',
     fontSize:40,
     color:themecolors.accent,
+  },
+  logodot:{
+    color:themecolors.text
   },
   topTextContainer:{
     flexDirection:'column',
@@ -78,10 +85,15 @@ const styles = StyleSheet.create({
 
   middleContainer:{
     flex:5,
-    backgroundColor:"red",
+    backgroundColor:themecolors.primary,
+    width:deviceWidth-50,
+  },
+  eventCard:{
+    backgroundColor:themecolors.accent
   },
   bottomContainer:{
     flex:1,
     backgroundColor:"green"
   },
+
 });
