@@ -96,8 +96,6 @@ const styles = StyleSheet.create({
 
   },
 
-
-
   loginbuttons:{
     flex:1,
     paddingVertical:30,

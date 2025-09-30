@@ -1,28 +1,59 @@
-import React from "react";
+import React, { useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View,TextInput,TouchableOpacity,Image,Dimensions, KeyboardAvoidingView, } from 'react-native';
 import themecolors from "../themes/themecolors";
+import textsettings from "../themes/textsettings";
 
 // import google from "./assets/google.png";
 // import { StatusBar } from 'expo-status-bar';
 
 export default function EventsScreen() {
+const[tabs,setTabs] = useState({
+        all: "All",
+        entertainment: "Entertainment",
+        education: "Education",
+        Spiritual:"Spiritual",
+        sport:"Sport",
+     
+})
+
+
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <View style={styles.topContainer}>
          <Text style={styles.Logopart}>E<Text style={styles.logodot}>.</Text></Text>
          <View style={styles.topTextContainer}>
                        <Text style={styles.welcometext}>Welcome back</Text><Text style={styles.name}>Hopewell</Text>
-
          </View>
          <Image style={styles.profilePic}>
           
          </Image>
       </View>
       <View style={styles.middleContainer}>
+            <View style={styles.eventTabs}>
+              <TouchableOpacity style={styles.eventsSelection}>
+                <Text style={styles.eventText}>{tabs.all}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.eventsSelection}>
+                <Text style={styles.eventText}>{tabs.entertainment}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.eventsSelection}>
+                <Text style={styles.eventText}>{tabs.education}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.eventsSelection}>
+                <Text style={styles.eventText}>{tabs.Spiritual}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.eventsSelection}>
+                <Text style={styles.eventText}>{tabs.sport}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.eventcardContainer}>
+              <View>
+                <Image>
 
-            <View style={styles.eventCard}>
-
+                </Image>
+                <Text>Feed the power street bash</Text>
+              </View>
             </View>
 
       </View>
@@ -55,7 +86,7 @@ const styles = StyleSheet.create({
   },
   Logopart:{
     fontWeight:'600',
-    fontSize:40,
+    fontSize:43,
     color:themecolors.accent,
   },
   logodot:{
@@ -88,8 +119,23 @@ const styles = StyleSheet.create({
     backgroundColor:themecolors.primary,
     width:deviceWidth-50,
   },
-  eventCard:{
-    backgroundColor:themecolors.accent
+  eventTabs:{
+    flexDirection:'row',
+    gap:5,
+  },
+  eventsSelection:{
+      backgroundColor:themecolors.accent,
+      padding:7,
+      borderRadius:8,
+  },
+  eventText:{
+    fontSize:textsettings.primarySubheading,
+  },
+  eventcardContainer:{
+
+  },
+  eventCards:{
+    backgroundColor:themecolors.accent,
   },
   bottomContainer:{
     flex:1,
