@@ -8,6 +8,8 @@ import textsettings from "../themes/textsettings";
 // import { StatusBar } from 'expo-status-bar';
 
 export default function EventsScreen() {
+
+const[name,useName]=useState({username:'Hopewell'})
 const[tabs,setTabs] = useState({
         all: "All",
         entertainment: "Entertainment",
@@ -21,13 +23,14 @@ const[tabs,setTabs] = useState({
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <View style={styles.topContainer}>
-         <Text style={styles.Logopart}>E<Text style={styles.logodot}>.</Text></Text>
          <View style={styles.topTextContainer}>
-                       <Text style={styles.welcometext}>Welcome back</Text><Text style={styles.name}>Hopewell</Text>
-         </View>
-         <Image style={styles.profilePic}>
+              <Text style={styles.welcometext}>Hi,<Text style={styles.name}>{name.username}</Text></Text>
+
+              <Image style={styles.profilePic}>
           
-         </Image>
+              </Image>
+         </View>
+         
       </View>
       <View style={styles.middleContainer}>
             <View style={styles.eventTabs}>
@@ -48,11 +51,11 @@ const[tabs,setTabs] = useState({
               </TouchableOpacity>
             </View>
             <View style={styles.eventcardContainer}>
-              <View>
+              <View style={styles.eventCards}>
                 <Image>
 
                 </Image>
-                <Text>Feed the power street bash</Text>
+                <Text>Feed the poor street bash</Text>
               </View>
             </View>
 
@@ -73,39 +76,30 @@ const styles = StyleSheet.create({
     backgroundColor: themecolors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    width:'100%',
+
   },
   topContainer:{
     flex:1,
-    flexDirection:"row",
-    paddingTop:5,
-    justifyContent:'space-around',
-    alignItems:'center',
-    width:deviceWidth,
-
+    width:deviceWidth-50,
+    paddingTop:20,
     
   },
-  Logopart:{
-    fontWeight:'600',
-    fontSize:43,
-    color:themecolors.accent,
-  },
-  logodot:{
-    color:themecolors.text
-  },
   topTextContainer:{
-    flexDirection:'column',
-    justifyContent:'center',
+    flexDirection:'row',
+    justifyContent:'space-between',
     alignItems:'center',
-    gap:3,
+     
   },
 
   welcometext:{
-    fontSize:20,
+    fontSize:30,
     fontWeight:'800',
     color:themecolors.text
   },
   name:{
-    fontSize:20
+   padding:2,
+   fontWeight:'200',
   },
   profilePic:{
     height:50,
