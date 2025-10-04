@@ -3,13 +3,18 @@ import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View,TextInput,TouchableOpacity,Image,Dimensions, KeyboardAvoidingView, } from 'react-native';
 import themecolors from "../themes/themecolors";
 import textsettings from "../themes/textsettings";
+import { auth } from "./config/firebaseConfig";
+
 
 // import google from "./assets/google.png";
 // import { StatusBar } from 'expo-status-bar';
 
 export default function EventsScreen() {
 
-const[name,useName]=useState({username:'Hopewell'})
+const user=auth.currentUser
+console.log(user);
+
+const[name,useName]=useState({username:user?.displayName})
 const[tabs,setTabs] = useState({
         all: "All",
         entertainment: "Entertainment",
@@ -52,9 +57,25 @@ const[tabs,setTabs] = useState({
             </View>
             <View style={styles.eventcardContainer}>
               <View style={styles.eventCards}>
-                <Image>
+                <View style={styles.eventcardTop}>
+                  <Image style={styles.eventcardprofilepic}>
 
-                </Image>
+                  </Image>
+                  <View style={styles.eventcardtopText}>
+
+                        <Text style={styles.eventcardUsername}>
+
+                    </Text>
+                    <Text style={styles.eventcardDatandTime}>
+
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.eventcardImageContainter}>
+                  <Image style={styles.imagecontainer}>
+
+                  </Image>
+                </View>
                 <Text>Feed the poor street bash</Text>
               </View>
             </View>
@@ -126,14 +147,19 @@ const styles = StyleSheet.create({
     fontSize:textsettings.primarySubheading,
   },
   eventcardContainer:{
+      padding:10,
+      backgroundColor:'yellow',
 
   },
   eventCards:{
     backgroundColor:themecolors.accent,
   },
+  imagecontainer:{
+    width:deviceWidth-50,
+    height:50,
+  },
   bottomContainer:{
     flex:1,
-    backgroundColor:"green"
   },
 
 });

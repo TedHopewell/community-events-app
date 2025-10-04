@@ -1,182 +1,142 @@
-import React from "react";
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View,TextInput,TouchableOpacity,Image,Dimensions, KeyboardAvoidingView, } from 'react-native';
-import LinearGradient from "react-native-linear-gradient";
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  TouchableOpacity,
+  Dimensions,
+  KeyboardAvoidingView,
+  Alert,
+} from "react-native";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {auth} from "./config/firebaseConfig";
+import { useNavigation,NavigationProp  } from "@react-navigation/native";
+import { RootStackParamList } from "./navigation/types"; // adjust path
 
-// import google from "./assets/google.png";
-// import { StatusBar } from 'expo-status-bar';
 
 export default function SignUp() {
+  const [name, setName] = useState("");
+  const [surname, setSurname] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  
+
+  console.log(auth)
+
+  const handleSignUp = async () => {
+    if (!email || !password || !name ) {
+      Alert.alert("Error", "Please fill in all fields.");
+      return;
+    }
+
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Update user profile with full name
+      await updateProfile(user, {
+        displayName: `${name} ${surname}`,
+      });
+
+      Alert.alert("Success", "Account created successfully!");
+      navigation.navigate("Login")
+
+      console.log("User created:", user);
+    } catch (error) {
+      Alert.alert("Signup failed");
+      console.log(error);
+      
+    }
+  };
+
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
+      <View style={styles.logoContainer}>
+        <Text style={styles.welcometxt}>Sign up Here</Text>
+        <View style={styles.inputBox}>
+          <TextInput
+            style={styles.logindetails}
+            placeholder="Name"
+            value={name}
+            onChangeText={setName}
+          />
+          <TextInput
+            style={styles.logindetails}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <TextInput
+            style={styles.logindetails}
+            placeholder="Password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+        </View>
+      </View>
 
-
-
-          <View style={styles.logoContainer}>
-            <Text style={styles.welcometxt}>Sign up Here</Text>
-            <View style={styles.inputBox}>
-              <TextInput style={styles.logindetails} placeholder="Name:"></TextInput>
-              <TextInput style={styles.logindetails} placeholder="Surname:"></TextInput>
-              <TextInput style={styles.logindetails} placeholder="Username"></TextInput>
-              <TextInput style={styles.logindetails} placeholder="Password"></TextInput>
-
-            </View>
-          </View>
-
-          <View style={styles.loginbuttons}>
-            <TouchableOpacity style={styles.loginbtn}>
-              <Text style={styles.btnText}>SignUp</Text>
-            </TouchableOpacity>
-          </View>
-
-
-            {/* <View style={styles.loginTextContainer}>
-            </View>
-            <View style={styles.inputContainer}>
-                            <Text style={styles.loginText}>Welcome Back</Text>
-
-              <TextInput style={styles.inputBox} placeholder='Username here...'></TextInput>
-            <TextInput style={styles.inputBox} placeholder='Password here...'></TextInput>
-            </View>
-            <View style={styles.loginbuttons}>
-              <TouchableOpacity style={styles.loginBtn} >
-                      <Text style={{fontSize:20,fontWeight:'800'}}>Sign In</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.loginBtnGoogle} >
-                      <Image  style={{width:20,height:20}} />
-                      <Text style={{fontSize:20,fontWeight:'800',paddingRight:20}}>Sign In</Text>
-              </TouchableOpacity>
-            </View> */}
-            {/* <View style={styles.hyperLinksContainer}>
-              <TouchableOpacity>
-                <Text style={styles.hyperLink}>Create Account</Text>
-                </TouchableOpacity>  
-              <TouchableOpacity>
-                <Text style={styles.hyperLink}>Forgot Password?</Text>
-              </TouchableOpacity>
-            </View> */}
+      <View style={styles.loginbuttons}>
+        <TouchableOpacity style={styles.loginbtn} onPress={handleSignUp}>
+          <Text style={styles.btnText}>Sign Up</Text>
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 }
 
-const deviceWidth = Math.round(Dimensions.get('window').width);
+const deviceWidth = Math.round(Dimensions.get("window").width);
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection:"column",
-    backgroundColor: 'rgba(192, 230, 204, 0.6)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "column",
+    backgroundColor: "rgba(192, 230, 204, 0.6)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  logoContainer:{
-    flex:3,
-    paddingTop:20,
-    justifyContent:'space-between',
-    width:deviceWidth-80,
+  logoContainer: {
+    flex: 3,
+    paddingTop: 20,
+    justifyContent: "space-between",
+    width: deviceWidth - 80,
   },
-  welcometxt:{
-    color:'black',
-    fontWeight:'bold',
-    textAlign:'center',
-    fontSize:30,
-    paddingTop:30
+  welcometxt: {
+    color: "black",
+    fontWeight: "bold",
+    textAlign: "center",
+    fontSize: 30,
+    paddingTop: 30,
   },
-
-
-  inputBox:{
-    flexDirection:'column',
-    paddingVertical:20,
-
+  inputBox: {
+    flexDirection: "column",
+    paddingVertical: 20,
   },
-
-  logindetails:{
-    borderBottomWidth:1,
-    padding:10,
-    backgroundColor:'white',
-    marginTop:20,
-
+  logindetails: {
+    borderBottomWidth: 1,
+    padding: 10,
+    backgroundColor: "white",
+    marginTop: 20,
   },
-
-
-
-  loginbuttons:{
-    flex:1,
-    paddingVertical:30,
+  loginbuttons: {
+    flex: 1,
+    paddingVertical: 30,
   },
-
-
-  loginbtn:{
-    justifyContent:'center',
-    alignItems:"center",
-    borderWidth:2,
-    borderRadius:50,
-    width:deviceWidth-150, 
+  loginbtn: {
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderRadius: 50,
+    width: deviceWidth - 150,
   },
-  btnText:{
-    paddingHorizontal:20,
-    paddingVertical:20
-  }
-
+  btnText: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    fontWeight: "bold",
+  },
 });
-//   loginTextContainer:{
-//     flex:2
-//   },
-//     loginText:{
-//     color:'black',
-//     fontWeight:'bold',
-//     textAlign:'center',
-//     fontSize:30,
-//     paddingTop:30
-//   },
-//   inputContainer:{
-//     flex:4,
-//     backgroundColor:'#b41515ff'
-//   },
-//   inputBox:{
-  
-//     height:40,
-//     width:deviceWidth-50,
-//     marginTop:20,
-//     backgroundColor:'#dededeee',
-//     paddingHorizontal:20,
-//     borderBottomWidth:2
-//   },
-//   hyperLinksContainer:{
-//     width:deviceWidth-50,
-//     display:'flex',
-//     flexDirection:'row',
-//     justifyContent:'space-between',
-//     marginTop:20,
-//   },
-//   hyperLink:{
-//     textAlign:'center',
-//     color:'blue',
-//   },
-//   loginBtn:{
-//     justifyContent:'center',
-//     alignItems:'center',
-//     backgroundColor:'orange',
-//     height:35,
-//     width:deviceWidth-50,
-//     textAlign:'center',
-//     borderRadius:8,
-//     marginTop:20,
-//   },
-//   loginBtnGoogle:{
-//     flexDirection:'row',
-//     alignItems:'center',
-//     justifyContent:'center',
-//     backgroundColor:'white',
-//     height:35,
-//     width:deviceWidth-50,
-//     textAlign:'center',
-//     borderRadius:8,
-//     marginTop:20,
-//   },
-//   loginbuttons:{
-//     flex:2
-//   }
-
-  
-// 
