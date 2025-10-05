@@ -14,6 +14,8 @@ import { auth } from "./config/firebaseConfig";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "./navigation/types"; // adjust path
 
+
+
 export default function Loginpage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -50,7 +52,7 @@ export default function Loginpage() {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
-      <View style={styles.logoContainer}>
+      <View style={styles.loginContainer}>
         <Text style={styles.welcometxt}>Welcome Back</Text>
         <View style={styles.inputBox}>
           <TextInput
@@ -68,12 +70,20 @@ export default function Loginpage() {
             onChangeText={setPassword}
             secureTextEntry
           />
+          <View style={styles.hyperlink}>
+            <Text>Don't have an account yet?</Text><Text>Sign up here...</Text>
+          </View>
         </View>
+        
       </View>
+      
 
       <View style={styles.loginbuttons}>
         <TouchableOpacity style={styles.loginbtn} onPress={handleLogin}>
-          <Text style={styles.btnText}>Sign In</Text>
+          <Text style={styles.btnText}>SignIn</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.loginbtn} onPress={handleLogin}>
+          <Text style={styles.btnText}>SignIn</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -90,11 +100,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  logoContainer: {
-    flex: 3,
-    paddingTop: 20,
+  loginContainer: {
+    flex: 2,
     justifyContent: "space-between",
     width: deviceWidth - 80,
+    paddingTop:50,
+    // backgroundColor:'blue'
   },
   welcometxt: {
     color: "black",
@@ -106,12 +117,17 @@ const styles = StyleSheet.create({
   inputBox: {
     flexDirection: "column",
     paddingVertical: 20,
+    
   },
   logindetails: {
     borderBottomWidth: 1,
     padding: 10,
     backgroundColor: "white",
     marginTop: 20,
+  },
+  hyperlink:{
+    flexDirection:'row',
+    gap:2,
   },
   loginbuttons: {
     flex: 1,

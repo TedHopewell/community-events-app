@@ -29,7 +29,7 @@ const[tabs,setTabs] = useState({
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <View style={styles.topContainer}>
          <View style={styles.topTextContainer}>
-              <Text style={styles.welcometext}>Hi,<Text style={styles.name}>{name.username}</Text></Text>
+              <Text style={styles.welcometext}>Hi,</Text><Text style={styles.name}>{name.username}</Text>
 
               <Image style={styles.profilePic}>
           
@@ -97,13 +97,13 @@ const styles = StyleSheet.create({
     backgroundColor: themecolors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    width:'100%',
+    width:deviceWidth,
 
   },
   topContainer:{
     flex:1,
     width:deviceWidth-50,
-    paddingTop:20,
+    paddingTop:40,
     
   },
   topTextContainer:{
@@ -119,8 +119,8 @@ const styles = StyleSheet.create({
     color:themecolors.text
   },
   name:{
-   padding:2,
    fontWeight:'200',
+   fontSize:20
   },
   profilePic:{
     height:50,
