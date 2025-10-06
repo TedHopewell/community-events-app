@@ -1,6 +1,6 @@
 // navigation/types.ts
 export type RootStackParamList = {
   Login: undefined;
-  SignUp: undefined;
+  Signup: undefined;
   Homepage: undefined; // add any params if needed
 };

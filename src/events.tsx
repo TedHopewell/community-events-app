@@ -58,9 +58,9 @@ const[tabs,setTabs] = useState({
             <View style={styles.eventcardContainer}>
               <View style={styles.eventCards}>
                 <View style={styles.eventcardTop}>
-                  <Image style={styles.eventcardprofilepic}>
-
-                  </Image>
+                  <Image style={styles.eventcardprofilepic} 
+                        source={require("../assets/pictures/image1.webp")}
+                  />
                   <View style={styles.eventcardtopText}>
 
                         <Text style={styles.eventcardUsername}>
@@ -158,6 +158,14 @@ const styles = StyleSheet.create({
     width:deviceWidth-50,
     height:50,
   },
+  eventcardTop:{
+
+  },
+  eventcardprofilepic:{},
+  eventcardtopText:{},
+  eventcardUsername:{},
+  eventcardDatandTime:{},
+  eventcardImageContainter:{},
   bottomContainer:{
     flex:1,
   },

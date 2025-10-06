@@ -13,6 +13,7 @@ import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import {auth} from "./config/firebaseConfig";
 import { useNavigation,NavigationProp  } from "@react-navigation/native";
 import { RootStackParamList } from "./navigation/types"; // adjust path
+import themecolors from "../themes/themecolors";
 
 
 export default function SignUp() {
@@ -42,7 +43,7 @@ export default function SignUp() {
       });
 
       Alert.alert("Success", "Account created successfully!");
-      navigation.navigate("Login")
+      navigation.navigate("Homepage")
 
       console.log("User created:", user);
     } catch (error) {
@@ -78,6 +79,14 @@ export default function SignUp() {
             onChangeText={setPassword}
             secureTextEntry
           />
+          <View style={styles.hyperlinkcontainer}>
+            <Text style={styles.hyperlinkText}>
+              Have an account already?
+              <Text style={styles.hyperlink} onPress={() => navigation.navigate("Login")}>
+                Login here...
+              </Text>
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -96,9 +105,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: "column",
-    backgroundColor: "rgba(192, 230, 204, 0.6)",
     alignItems: "center",
     justifyContent: "center",
+    paddingVertical:20
   },
   logoContainer: {
     flex: 3,
@@ -116,12 +125,26 @@ const styles = StyleSheet.create({
   inputBox: {
     flexDirection: "column",
     paddingVertical: 20,
+    
   },
   logindetails: {
     borderBottomWidth: 1,
-    padding: 10,
+    padding: 20,
     backgroundColor: "white",
     marginTop: 20,
+    color:themecolors.text2
+  },
+  hyperlinkcontainer:{
+    flexDirection:'row',
+    justifyContent:'center',
+    alignContent:'center',
+    top:15,
+  },
+  hyperlinkText:{
+    color:themecolors.text2
+  },
+  hyperlink:{
+    color:themecolors.accent
   },
   loginbuttons: {
     flex: 1,
@@ -133,10 +156,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 50,
     width: deviceWidth - 150,
+    top:55
   },
   btnText: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-    fontWeight: "bold",
+    padding:20,
+    fontWeight: "800",
+    color:themecolors.text2
   },
 });

@@ -3,16 +3,18 @@ import {
   StyleSheet,
   Text,
   View,
+  Image,
   TextInput,
   TouchableOpacity,
   Dimensions,
   KeyboardAvoidingView,
   Alert,
 } from "react-native";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "./config/firebaseConfig";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "./navigation/types"; // adjust path
+import themecolors from "../themes/themecolors";
 
 
 
@@ -21,6 +23,7 @@ export default function Loginpage() {
   const [password, setPassword] = useState("");
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+
 
 
   const handleLogin = async () => {
@@ -50,6 +53,8 @@ export default function Loginpage() {
     }
   };
 
+ 
+
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
       <View style={styles.loginContainer}>
@@ -71,7 +76,8 @@ export default function Loginpage() {
             secureTextEntry
           />
           <View style={styles.hyperlink}>
-            <Text>Don't have an account yet?</Text><Text>Sign up here...</Text>
+            <Text style={styles.inputboxBottomText}>Don't have an account yet?<Text style={styles.signupHyperlink} onPress={() =>navigation.navigate("Signup")}>Sign up here...</Text></Text>
+            <Text style={styles.inputboxBottomText}>Forfot Password?<Text style={styles.signupHyperlink}>Reset Password here...</Text></Text>
           </View>
         </View>
         
@@ -83,6 +89,12 @@ export default function Loginpage() {
           <Text style={styles.btnText}>SignIn</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.loginbtn} onPress={handleLogin}>
+          <Image
+              source={require("../assets/pictures/googleIcon.png")}
+              style={styles.googleicon}
+            
+            /> 
+          
           <Text style={styles.btnText}>SignIn</Text>
         </TouchableOpacity>
       </View>
@@ -96,9 +108,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: "column",
-    backgroundColor: "rgba(192, 230, 204, 0.6)",
+    backgroundColor: themecolors.primary,
     alignItems: "center",
-    justifyContent: "center",
+    alignContent: "center",
   },
   loginContainer: {
     flex: 2,
@@ -116,32 +128,52 @@ const styles = StyleSheet.create({
   },
   inputBox: {
     flexDirection: "column",
-    paddingVertical: 20,
-    
   },
   logindetails: {
     borderBottomWidth: 1,
-    padding: 10,
+    padding: 20,
     backgroundColor: "white",
     marginTop: 20,
+    color:themecolors.text2
   },
   hyperlink:{
-    flexDirection:'row',
-    gap:2,
+    flexDirection:'column',
+    alignItems:'center',
+    gap:5,
+    top:5,
+    paddingTop:10,
   },
+  inputboxBottomText:{
+        color:themecolors.text2
+
+  },
+  signupHyperlink:{
+    color:themecolors.accent
+  },
+  
   loginbuttons: {
     flex: 1,
-    paddingVertical: 30,
+    paddingVertical: 28,
+    flexDirection:'column',
+    justifyContent:'space-evenly'
   },
   loginbtn: {
+    flexDirection:'row',
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
     borderRadius: 50,
     width: deviceWidth - 150,
+    padding:15,
+    gap:5,
+    top:20
+  },
+  googleicon:{
+    width:30,
+    height:30
   },
   btnText: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    fontWeight:"800",
+    color:themecolors.text2
   },
 });
