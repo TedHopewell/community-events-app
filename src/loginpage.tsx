@@ -10,7 +10,10 @@ import {
   KeyboardAvoidingView,
   Alert,
 } from "react-native";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup,getAuth,signInWithCredential  } from "firebase/auth";
+import { sendPasswordResetEmail } from "firebase/auth";
+import * as Google from "expo-auth-session/providers/google";
+
 import { auth } from "./config/firebaseConfig";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "./navigation/types"; // adjust path
@@ -24,7 +27,47 @@ export default function Loginpage() {
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
+  const handlePasswordReset = async () => {
+  if (!email) {
+    Alert.alert("Missing Email", "Please enter your email first.");
+    return;
+  }
 
+  try {
+    await sendPasswordResetEmail(auth, email);
+    Alert.alert(
+      "Password Reset",
+      "A password reset link has been sent to your email."
+    );
+  } catch (error) {
+    console.error(error);
+    Alert.alert("Error");
+  }
+};
+
+
+// const [request, response, promptAsync] = Google.useAuthRequest({
+//     expoClientId: "YOUR_EXPO_CLIENT_ID.apps.googleusercontent.com",
+//     webClientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
+//     androidClientId: "YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com",
+//     iosClientId: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
+//   });
+//   const handleGoogleSignIn = async () => {
+//     try {
+//       const result = await promptAsync();
+//       if (result.type === "success") {
+//         const { id_token } = result.params;
+//         const credential = GoogleAuthProvider.credential(id_token);
+//         await signInWithCredential(auth, credential);
+//         Alert.alert("Success", "Logged in with Google!");
+//       } else {
+//         Alert.alert("Cancelled", "Google sign in cancelled");
+//       }
+//     } catch (err) {
+//       console.error(err);
+//       Alert.alert("Error", "Google Sign-In failed");
+//     }
+//   };
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -47,7 +90,7 @@ export default function Loginpage() {
 
     } catch (error) {
       console.error(error);
-      Alert.alert("Login failed");
+      Alert.alert("Login failed, email or password incorrect. Please try again.");
       console.log(error);
       
     }
@@ -56,18 +99,18 @@ export default function Loginpage() {
  
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="padding">
+    <KeyboardAvoidingView style={styles.container}  behavior="padding">
       <View style={styles.loginContainer}>
         <Text style={styles.welcometxt}>Welcome Back</Text>
         <View style={styles.inputBox}>
           <TextInput
-            style={styles.logindetails}
             placeholder="Email"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => setEmail(text)}
+            style={styles.logindetails}
             keyboardType="email-address"
-            autoCapitalize="none"
           />
+
           <TextInput
             style={styles.logindetails}
             placeholder="Password"
@@ -77,7 +120,7 @@ export default function Loginpage() {
           />
           <View style={styles.hyperlink}>
             <Text style={styles.inputboxBottomText}>Don't have an account yet?<Text style={styles.signupHyperlink} onPress={() =>navigation.navigate("Signup")}>Sign up here...</Text></Text>
-            <Text style={styles.inputboxBottomText}>Forfot Password?<Text style={styles.signupHyperlink}>Reset Password here...</Text></Text>
+            <Text style={styles.inputboxBottomText}>Forfot Password?<Text style={styles.signupHyperlink} onPress={() => handlePasswordReset(email)}>Reset Password here...</Text></Text>
           </View>
         </View>
         

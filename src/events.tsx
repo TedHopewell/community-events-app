@@ -103,7 +103,11 @@ export default function EventsScreen() {
       </View>
 
       {/* ==== BOTTOM ==== */}
-      <View style={styles.bottomContainer}></View>
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity>
+          
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -122,11 +126,12 @@ const styles = StyleSheet.create({
     flex: 1,
     width: deviceWidth - 50,
     paddingTop: 40,
+    
   },
   usernameContainer:{
     flexDirection:"row",
-    justifyContent:"center",
-    alignItems:"center"
+    alignItems:"center",
+    gap:2
   },
   topTextContainer: {
     flexDirection: "row",
@@ -141,12 +146,15 @@ const styles = StyleSheet.create({
   name: {
     fontWeight: "200",
     fontSize: 25,
+    width:"75%"
+
   },
   profilePic: {
     height: 50,
     width: 50,
     borderRadius: 25,
     backgroundColor: themecolors.accent,
+    resizeMode:'cover'
   },
   middleContainer: {
     flex: 7,
@@ -189,6 +197,7 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 50,
+    resizeMode:'cover'
   },
   eventcardtopText: {
     flexDirection: "column",
