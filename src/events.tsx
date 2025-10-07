@@ -15,6 +15,14 @@ const user=auth.currentUser
 console.log(user);
 
 const[name,useName]=useState({username:user?.displayName})
+const[date,setDate]=useState({
+  time: "12:18",
+  date:"9th Oct 2025"
+})
+const[text,setText] = useState({
+  eventName:"Feed the poor street bash",
+  eventDetails:"orem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
+})
 const[tabs,setTabs] = useState({
         all: "All",
         entertainment: "Entertainment",
@@ -64,19 +72,26 @@ const[tabs,setTabs] = useState({
                   <View style={styles.eventcardtopText}>
 
                         <Text style={styles.eventcardUsername}>
-
-                    </Text>
-                    <Text style={styles.eventcardDatandTime}>
-
-                    </Text>
+                              {name.username}
+                        </Text>
+                        <Text style={styles.eventcardDatandTime}>
+                              {date.date}
+                              {date.time}
+                        </Text>
                   </View>
                 </View>
                 <View style={styles.eventcardImageContainter}>
-                  <Image style={styles.imagecontainer}>
-
-                  </Image>
+                  <Image 
+                      style={styles.imagecontainer}
+                      source={require("../assets/pictures/image2.webp")}
+                        resizeMode="cover"
+                  />
                 </View>
-                <Text>Feed the poor street bash</Text>
+                <View style={styles.eventbottomText}>
+                    <Text style={styles.eventTitle}>{text.eventName}</Text>
+                    <Text style={styles.eventdetailsText}>{text.eventDetails}</Text>
+                </View> 
+
               </View>
             </View>
 
@@ -147,24 +162,49 @@ const styles = StyleSheet.create({
     fontSize:textsettings.primarySubheading,
   },
   eventcardContainer:{
-      padding:10,
-      backgroundColor:'yellow',
+      padding:5,
+      
 
   },
   eventCards:{
-    backgroundColor:themecolors.accent,
+    flexDirection:'column',
+    gap:10,
+    padding:5,
+    paddingVertical:10
   },
   imagecontainer:{
-    width:deviceWidth-50,
-    height:50,
+  width:"100%",
+  height: 150,
+  resizeMode: "contain",
+  alignSelf: "center",
+  
+  
+  backgroundColor:'blue'
   },
   eventcardTop:{
-
+    flexDirection:'row',
+    gap:10
   },
-  eventcardprofilepic:{},
-  eventcardtopText:{},
-  eventcardUsername:{},
-  eventcardDatandTime:{},
+  eventcardprofilepic:{
+    width:50,
+    height:50,
+    borderRadius:50,
+  },
+  eventcardtopText:{
+    flexDirection:'column',
+    alignContent:'center',
+    gap:5
+    
+  },
+  eventcardUsername:{
+    fontSize:textsettings.primarySize,
+    fontWeight:'700'  
+  },
+  eventcardDatandTime:{
+    fontSize:textsettings.primaryDate,
+    fontWeight:'600',
+    color:themecolors.text2
+  },
   eventcardImageContainter:{},
   bottomContainer:{
     flex:1,

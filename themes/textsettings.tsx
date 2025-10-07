@@ -3,4 +3,6 @@ export default {
   primarySubheading: 18,
   primaryCards: 22,
   primaryDate:12,
+  primaryWeight:'800',
+  SecondaryWeight:'600'
 };
