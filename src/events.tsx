@@ -1,213 +1,222 @@
 import React, { useState } from "react";
-import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View,TextInput,TouchableOpacity,Image,Dimensions, KeyboardAvoidingView, } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Image,
+  Dimensions,
+  KeyboardAvoidingView,
+  ScrollView,
+} from "react-native";
 import themecolors from "../themes/themecolors";
 import textsettings from "../themes/textsettings";
 import { auth } from "./config/firebaseConfig";
 
-
-// import google from "./assets/google.png";
-// import { StatusBar } from 'expo-status-bar';
-
 export default function EventsScreen() {
+  const user = auth.currentUser;
 
-const user=auth.currentUser
-console.log(user);
-
-const[name,useName]=useState({username:user?.displayName})
-const[date,setDate]=useState({
-  time: "12:18",
-  date:"9th Oct 2025"
-})
-const[text,setText] = useState({
-  eventName:"Feed the poor street bash",
-  eventDetails:"orem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
-})
-const[tabs,setTabs] = useState({
-        all: "All",
-        entertainment: "Entertainment",
-        education: "Education",
-        Spiritual:"Spiritual",
-        sport:"Sport",
-     
-})
-
+  const [name] = useState({ username: user?.displayName || "Guest" });
+  const [date] = useState({
+    time: "12:18",
+    date: "9th Oct 2025",
+  });
+  const [text] = useState({
+    eventName: "Feed the poor street bash",
+    eventDetails:
+      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. It has survived not only five centuries but also the leap into electronic typesetting.",
+  });
+  const [tabs] = useState({
+    all: "All",
+    entertainment: "Entertainment",
+    education: "Education",
+    Spiritual: "Spiritual",
+    sport: "Sport",
+  });
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
+      {/* ==== TOP ==== */}
       <View style={styles.topContainer}>
-         <View style={styles.topTextContainer}>
-              <Text style={styles.welcometext}>Hi,</Text><Text style={styles.name}>{name.username}</Text>
-
-              <Image style={styles.profilePic}>
-          
-              </Image>
-         </View>
-         
+        <View style={styles.topTextContainer}>
+          <View style={styles.usernameContainer}>
+            <Text style={styles.welcometext}>Hi,</Text>
+            <Text style={styles.name}>{name.username}</Text>
+          </View>
+          <Image
+            style={styles.profilePic}
+            source={require("../assets/pictures/image1.webp")}
+          />
+        </View>
       </View>
+
+      {/* ==== MIDDLE (Scrollable) ==== */}
       <View style={styles.middleContainer}>
-            <View style={styles.eventTabs}>
-              <TouchableOpacity style={styles.eventsSelection}>
-                <Text style={styles.eventText}>{tabs.all}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.eventsSelection}>
-                <Text style={styles.eventText}>{tabs.entertainment}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.eventsSelection}>
-                <Text style={styles.eventText}>{tabs.education}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.eventsSelection}>
-                <Text style={styles.eventText}>{tabs.Spiritual}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.eventsSelection}>
-                <Text style={styles.eventText}>{tabs.sport}</Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.eventcardContainer}>
-              <View style={styles.eventCards}>
-                <View style={styles.eventcardTop}>
-                  <Image style={styles.eventcardprofilepic} 
-                        source={require("../assets/pictures/image1.webp")}
-                  />
-                  <View style={styles.eventcardtopText}>
+        {/* Tabs */}
+        <View style={styles.eventTabs}>
+          {Object.values(tabs).map((tab, index) => (
+            <TouchableOpacity key={index} style={styles.eventsSelection}>
+              <Text style={styles.eventText}>{tab}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-                        <Text style={styles.eventcardUsername}>
-                              {name.username}
-                        </Text>
-                        <Text style={styles.eventcardDatandTime}>
-                              {date.date}
-                              {date.time}
-                        </Text>
-                  </View>
+        {/* ==== Vertical ScrollView for event cards ==== */}
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          style={styles.eventScrollContainer}
+          contentContainerStyle={{ paddingBottom: 10 }}
+        >
+          {[1, 2, 3, 4].map((i) => (
+            <View key={i} style={styles.eventCards}>
+              {/* Card Top Section */}
+              <View style={styles.eventcardTop}>
+                <Image
+                  style={styles.eventcardprofilepic}
+                  source={require("../assets/pictures/image1.webp")}
+                />
+                <View style={styles.eventcardtopText}>
+                  <Text style={styles.eventcardUsername}>{name.username}</Text>
+                  <Text style={styles.eventcardDatandTime}>
+                    {date.date} • {date.time}
+                  </Text>
                 </View>
-                <View style={styles.eventcardImageContainter}>
-                  <Image 
-                      style={styles.imagecontainer}
-                      source={require("../assets/pictures/image2.webp")}
-                        resizeMode="cover"
-                  />
-                </View>
-                <View style={styles.eventbottomText}>
-                    <Text style={styles.eventTitle}>{text.eventName}</Text>
-                    <Text style={styles.eventdetailsText}>{text.eventDetails}</Text>
-                </View> 
+              </View>
 
+              {/* Event Image */}
+              <View>
+                <Image
+                  style={styles.imagecontainer}
+                  source={require("../assets/pictures/image2.webp")}
+                  resizeMode="cover"
+                />
+              </View>
+
+              {/* Event Bottom Text */}
+              <View style={styles.eventbottomText}>
+                <Text style={styles.eventTitle}>{text.eventName}</Text>
+                <Text style={styles.eventdetailsText}>{text.eventDetails}</Text>
               </View>
             </View>
-
+          ))}
+        </ScrollView>
       </View>
-      <View style={styles.bottomContainer}>
 
-      </View>
-            
+      {/* ==== BOTTOM ==== */}
+      <View style={styles.bottomContainer}></View>
     </KeyboardAvoidingView>
   );
 }
 
-const deviceWidth = Math.round(Dimensions.get('window').width);
+const deviceWidth = Math.round(Dimensions.get("window").width);
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: themecolors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width:deviceWidth,
-
+    alignItems: "center",
+    justifyContent: "center",
+    width: deviceWidth,
   },
-  topContainer:{
-    flex:1,
-    width:deviceWidth-50,
-    paddingTop:40,
-    
+  topContainer: {
+    flex: 1,
+    width: deviceWidth - 50,
+    paddingTop: 40,
   },
-  topTextContainer:{
-    flexDirection:'row',
-    justifyContent:'space-between',
-    alignItems:'center',
-     
+  usernameContainer:{
+    flexDirection:"row",
+    justifyContent:"center",
+    alignItems:"center"
   },
-
-  welcometext:{
-    fontSize:30,
-    fontWeight:'800',
-    color:themecolors.text
+  topTextContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
-  name:{
-   fontWeight:'200',
-   fontSize:20
+  welcometext: {
+    fontSize: 30,
+    fontWeight: "800",
+    color: themecolors.text,
   },
-  profilePic:{
-    height:50,
-    width:50,
-    borderRadius:50,
-    backgroundColor:themecolors.accent,
+  name: {
+    fontWeight: "200",
+    fontSize: 25,
   },
-
-  middleContainer:{
-    flex:5,
-    backgroundColor:themecolors.primary,
-    width:deviceWidth-50,
+  profilePic: {
+    height: 50,
+    width: 50,
+    borderRadius: 25,
+    backgroundColor: themecolors.accent,
   },
-  eventTabs:{
-    flexDirection:'row',
-    gap:5,
+  middleContainer: {
+    flex: 7,
+    backgroundColor: themecolors.primary,
+    width: deviceWidth - 50,
   },
-  eventsSelection:{
-      backgroundColor:themecolors.accent,
-      padding:7,
-      borderRadius:8,
+  eventTabs: {
+    flexDirection: "row",
+    gap: 5,
+    marginBottom: 10,
   },
-  eventText:{
-    fontSize:textsettings.primarySubheading,
+  eventsSelection: {
+    backgroundColor: themecolors.accent,
+    padding: 7,
+    borderRadius: 8,
   },
-  eventcardContainer:{
-      padding:5,
-      
-
+  eventText: {
+    fontSize: textsettings.primarySubheading,
   },
-  eventCards:{
-    flexDirection:'column',
-    gap:10,
-    padding:5,
-    paddingVertical:10
+  eventScrollContainer: {
+    flexGrow: 1,
   },
-  imagecontainer:{
-  width:"100%",
-  height: 150,
-  resizeMode: "contain",
-  alignSelf: "center",
-  
-  
-  backgroundColor:'blue'
+  eventCards: {
+    backgroundColor: themecolors.accent,
+    borderRadius: 12,
+    marginBottom: 20,
+    padding: 10,
   },
-  eventcardTop:{
-    flexDirection:'row',
-    gap:10
+  imagecontainer: {
+    width: "100%",
+    height: 180,
+    borderRadius: 10,
   },
-  eventcardprofilepic:{
-    width:50,
-    height:50,
-    borderRadius:50,
+  eventcardTop: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 10,
   },
-  eventcardtopText:{
-    flexDirection:'column',
-    alignContent:'center',
-    gap:5
-    
+  eventcardprofilepic: {
+    width: 45,
+    height: 45,
+    borderRadius: 50,
   },
-  eventcardUsername:{
-    fontSize:textsettings.primarySize,
-    fontWeight:'700'  
+  eventcardtopText: {
+    flexDirection: "column",
+    alignContent: "center",
+    gap: 5,
   },
-  eventcardDatandTime:{
-    fontSize:textsettings.primaryDate,
-    fontWeight:'600',
-    color:themecolors.text2
+  eventcardUsername: {
+    fontSize: textsettings.primarySize,
+    fontWeight: "700",
   },
-  eventcardImageContainter:{},
-  bottomContainer:{
-    flex:1,
+  eventcardDatandTime: {
+    fontSize: textsettings.primaryDate,
+    fontWeight: "600",
+    color: themecolors.text2,
   },
-
+  eventbottomText: {
+    gap: 5,
+    marginTop: 10,
+  },
+  eventTitle: {
+    fontSize: textsettings.primarySize,
+    fontWeight: "700",
+  },
+  eventdetailsText: {
+    color: themecolors.text2,
+    fontSize: textsettings.primarySubheading,
+  },
+  bottomContainer: {
+    flex: 1,
+  },
 });
