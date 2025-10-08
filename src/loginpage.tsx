@@ -9,6 +9,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Alert,
+  ImageBackground
 } from "react-native";
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup,getAuth,signInWithCredential  } from "firebase/auth";
 import { sendPasswordResetEmail } from "firebase/auth";
@@ -99,7 +100,7 @@ export default function Loginpage() {
  
 
   return (
-    <KeyboardAvoidingView style={styles.container}  behavior="padding">
+    <ImageBackground style={styles.container} source={require("../assets/pictures/mainbg.png")} resizeMode="cover">
       <View style={styles.loginContainer}>
         <Text style={styles.welcometxt}>Welcome Back</Text>
         <View style={styles.inputBox}>
@@ -133,7 +134,7 @@ export default function Loginpage() {
         </TouchableOpacity>
         <TouchableOpacity style={styles.loginbtn} onPress={handleLogin}>
           <Image
-              source={require("../assets/pictures/googleIcon.png")}
+              source={require("../assets/pictures/googlelogo.png")}
               style={styles.googleicon}
             
             /> 
@@ -141,7 +142,7 @@ export default function Loginpage() {
           <Text style={styles.btnText}>SignIn</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 
@@ -154,16 +155,19 @@ const styles = StyleSheet.create({
     backgroundColor: themecolors.primary,
     alignItems: "center",
     alignContent: "center",
+    
+  },
+  bgcontainer:{
+
   },
   loginContainer: {
     flex: 2,
     justifyContent: "space-between",
     width: deviceWidth - 80,
     paddingTop:50,
-    // backgroundColor:'blue'
   },
   welcometxt: {
-    color: "black",
+    color: themecolors.primaryLight,
     fontWeight: "bold",
     textAlign: "center",
     fontSize: 30,
@@ -187,7 +191,7 @@ const styles = StyleSheet.create({
     paddingTop:10,
   },
   inputboxBottomText:{
-        color:themecolors.text2
+        color:themecolors.primaryLight
 
   },
   signupHyperlink:{
@@ -201,6 +205,7 @@ const styles = StyleSheet.create({
     justifyContent:'space-evenly'
   },
   loginbtn: {
+    backgroundColor:themecolors.accent,
     flexDirection:'row',
     justifyContent: "center",
     alignItems: "center",

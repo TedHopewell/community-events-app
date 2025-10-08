@@ -8,6 +8,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Alert,
+  ImageBackground
 } from "react-native";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import {auth} from "./config/firebaseConfig";
@@ -54,7 +55,7 @@ export default function SignUp() {
   };
 
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="padding">
+    <ImageBackground style={styles.container} source={require("../assets/pictures/bg4.jpg")} resizeMode="cover">
       <View style={styles.logoContainer}>
         <Text style={styles.welcometxt}>Sign up Here</Text>
         <View style={styles.inputBox}>
@@ -95,7 +96,7 @@ export default function SignUp() {
           <Text style={styles.btnText}>Sign Up</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 
@@ -116,7 +117,7 @@ const styles = StyleSheet.create({
     width: deviceWidth - 80,
   },
   welcometxt: {
-    color: "black",
+    color: themecolors.primaryLight,
     fontWeight: "bold",
     textAlign: "center",
     fontSize: 30,
@@ -141,7 +142,7 @@ const styles = StyleSheet.create({
     top:15,
   },
   hyperlinkText:{
-    color:themecolors.text2
+    color:themecolors.primaryLight
   },
   hyperlink:{
     color:themecolors.accent
@@ -149,6 +150,7 @@ const styles = StyleSheet.create({
   loginbuttons: {
     flex: 1,
     paddingVertical: 30,
+
   },
   loginbtn: {
     justifyContent: "center",
@@ -156,7 +158,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 50,
     width: deviceWidth - 150,
-    top:55
+    top:55,
+    backgroundColor:themecolors.accent,
   },
   btnText: {
     padding:20,

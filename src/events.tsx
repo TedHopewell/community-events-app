@@ -8,18 +8,23 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   ScrollView,
+  Alert,
+  ImageBackground
 } from "react-native";
 import themecolors from "../themes/themecolors";
 import textsettings from "../themes/textsettings";
 import { auth } from "./config/firebaseConfig";
+import { signOut } from "firebase/auth";
+import { useNavigation } from "@react-navigation/native";
 
 export default function EventsScreen() {
   const user = auth.currentUser;
-
+  const navigation = useNavigation();
   const [name] = useState({ username: user?.displayName || "Guest" });
   const [date] = useState({
     time: "12:18",
-    date: "9th Oct 2025",
+    currentdate: "9th Oct 2025",
+    eventDate:"27 Dec 2025",
   });
   const [text] = useState({
     eventName: "Feed the poor street bash",
@@ -34,8 +39,38 @@ export default function EventsScreen() {
     sport: "Sport",
   });
 
+  const handleLogout = () => {
+    Alert.alert(
+      "Confirm Logout",
+      "Are you sure you want to log out?",
+      [
+        {
+          text: "Cancel",
+          onPress: () => console.log("Logout cancelled"),
+          style: "cancel",
+        },
+        {
+          text: "Yes, Log Out",
+          onPress: async () => {
+            try {
+              await signOut(auth);
+              Alert.alert("Logged Out", "You have been signed out successfully.");
+              navigation.navigate("Login"); // navigate back to login page
+            } catch (error) {
+              console.error(error);
+              Alert.alert("Error", "Something went wrong while logging out.");
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+
   return (
-    <KeyboardAvoidingView style={styles.container} behavior="padding">
+    
+    <ImageBackground style={styles.container} source={require("../assets/pictures/bg6.jpg")}>
       {/* ==== TOP ==== */}
       <View style={styles.topContainer}>
         <View style={styles.topTextContainer}>
@@ -78,7 +113,7 @@ export default function EventsScreen() {
                 <View style={styles.eventcardtopText}>
                   <Text style={styles.eventcardUsername}>{name.username}</Text>
                   <Text style={styles.eventcardDatandTime}>
-                    {date.date} • {date.time}
+                    {date.currentdate} • {date.time}
                   </Text>
                 </View>
               </View>
@@ -95,7 +130,13 @@ export default function EventsScreen() {
               {/* Event Bottom Text */}
               <View style={styles.eventbottomText}>
                 <Text style={styles.eventTitle}>{text.eventName}</Text>
+                <Text style={styles.eventDate}>{date.eventDate}</Text>
                 <Text style={styles.eventdetailsText}>{text.eventDetails}</Text>
+              </View>
+              <View>
+                <TouchableOpacity style={styles.rsvpbutton}>
+                  <Text style={styles.rsvpText}>RSVP HERE</Text>
+                </TouchableOpacity>
               </View>
             </View>
           ))}
@@ -104,11 +145,19 @@ export default function EventsScreen() {
 
       {/* ==== BOTTOM ==== */}
       <View style={styles.bottomContainer}>
-        <TouchableOpacity>
-          
-        </TouchableOpacity>
+        
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
+        
       </View>
-    </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 
@@ -117,7 +166,6 @@ const deviceWidth = Math.round(Dimensions.get("window").width);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: themecolors.primary,
     alignItems: "center",
     justifyContent: "center",
     width: deviceWidth,
@@ -138,15 +186,17 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  welcometext: {
+  welcometext: {   
+    color:themecolors.primaryLight,
     fontSize: 30,
     fontWeight: "800",
-    color: themecolors.text,
   },
   name: {
-    fontWeight: "200",
+    fontWeight: "600",
     fontSize: 25,
-    width:"75%"
+    width:"75%",
+    color:themecolors.primaryLight,
+
 
   },
   profilePic: {
@@ -156,9 +206,13 @@ const styles = StyleSheet.create({
     backgroundColor: themecolors.accent,
     resizeMode:'cover'
   },
+
+
+  //Whole middle contaner
+
+
   middleContainer: {
     flex: 7,
-    backgroundColor: themecolors.primary,
     width: deviceWidth - 50,
   },
   eventTabs: {
@@ -177,11 +231,14 @@ const styles = StyleSheet.create({
   eventScrollContainer: {
     flexGrow: 1,
   },
+
+  //events Card Container
+
   eventCards: {
-    backgroundColor: themecolors.accent,
     borderRadius: 12,
     marginBottom: 20,
     padding: 10,
+    backgroundColor:themecolors.accentBg
   },
   imagecontainer: {
     width: "100%",
@@ -205,27 +262,60 @@ const styles = StyleSheet.create({
     gap: 5,
   },
   eventcardUsername: {
+    color: themecolors.primaryLight,
     fontSize: textsettings.primarySize,
     fontWeight: "700",
   },
   eventcardDatandTime: {
     fontSize: textsettings.primaryDate,
     fontWeight: "600",
-    color: themecolors.text2,
+    color: themecolors.primaryLight,
   },
   eventbottomText: {
     gap: 5,
     marginTop: 10,
   },
   eventTitle: {
+    color: themecolors.primaryLight,
     fontSize: textsettings.primarySize,
     fontWeight: "700",
   },
+  eventDate:{
+    color: themecolors.primaryLight,
+    fontWeight:'800',
+  },
   eventdetailsText: {
-    color: themecolors.text2,
+    color: themecolors.primaryLight,
     fontSize: textsettings.primarySubheading,
+  },
+
+  rsvpbutton:{
+    padding:20,
+    backgroundColor:themecolors.accent,    
+    alignItems:"center",
+    borderRadius:50
+  },
+  rsvpText:{
+    fontWeight:"800",
   },
   bottomContainer: {
     flex: 1,
+    flexDirection:"row",
+    gap:50,
+    backgroundColor:"red"
   },
+  
+ 
+  logoutBtn: {
+    backgroundColor: "#E63946",
+    padding:10,
+    borderRadius: 25,
+  },
+  logoutText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+
+
 });
