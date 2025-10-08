@@ -31,4 +31,4 @@ const auth = initializeAuth(app, {
 // Initialize Firestore
 const db = getFirestore(app);
 
-export {auth}
+export {auth, db}

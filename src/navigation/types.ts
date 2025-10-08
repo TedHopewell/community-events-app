@@ -2,5 +2,6 @@
 export type RootStackParamList = {
   Login: undefined;
   Signup: undefined;
-  Homepage: undefined; // add any params if needed
+  Homepage: undefined; 
+  CreateEvent: undefined;
 };

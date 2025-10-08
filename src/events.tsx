@@ -1,82 +1,140 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
   Image,
-  Dimensions,
-  KeyboardAvoidingView,
   ScrollView,
   Alert,
-  ImageBackground
+  ImageBackground,
+  Dimensions,
+  ActivityIndicator,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
 } from "react-native";
+import axios from "axios";
+import { useNavigation } from "@react-navigation/native";
+import { signOut } from "firebase/auth";
+import { auth } from "./config/firebaseConfig";
+import { db } from "./config/firebaseConfig";
 import themecolors from "../themes/themecolors";
 import textsettings from "../themes/textsettings";
-import { auth } from "./config/firebaseConfig";
-import { signOut } from "firebase/auth";
-import { useNavigation } from "@react-navigation/native";
+
+const { width: deviceWidth } = Dimensions.get("window");
+
+interface EventData {
+  id: string;
+  name: string;
+  images?: { url: string }[];
+  dates: {
+    start: { localDate: string; localTime?: string };
+  };
+  _embedded?: {
+    venues?: { name: string; city?: { name: string } }[];
+  };
+}
 
 export default function EventsScreen() {
+  const [events, setEvents] = useState<EventData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [modalVisible, setModalVisible] = useState(false);
+  const [newEventName, setNewEventName] = useState("");
+  const [newEventDate, setNewEventDate] = useState("");
+  const [newEventTime, setNewEventTime] = useState("");
+  const [newEventVenue, setNewEventVenue] = useState("");
+
   const user = auth.currentUser;
   const navigation = useNavigation();
-  const [name] = useState({ username: user?.displayName || "Guest" });
-  const [date] = useState({
-    time: "12:18",
-    currentdate: "9th Oct 2025",
-    eventDate:"27 Dec 2025",
-  });
-  const [text] = useState({
-    eventName: "Feed the poor street bash",
-    eventDetails:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. It has survived not only five centuries but also the leap into electronic typesetting.",
-  });
-  const [tabs] = useState({
-    all: "All",
-    entertainment: "Entertainment",
-    education: "Education",
-    Spiritual: "Spiritual",
-    sport: "Sport",
-  });
 
-  const handleLogout = () => {
-    Alert.alert(
-      "Confirm Logout",
-      "Are you sure you want to log out?",
-      [
-        {
-          text: "Cancel",
-          onPress: () => console.log("Logout cancelled"),
-          style: "cancel",
-        },
-        {
-          text: "Yes, Log Out",
-          onPress: async () => {
-            try {
-              await signOut(auth);
-              Alert.alert("Logged Out", "You have been signed out successfully.");
-              navigation.navigate("Login"); // navigate back to login page
-            } catch (error) {
-              console.error(error);
-              Alert.alert("Error", "Something went wrong while logging out.");
-            }
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+  const TM_API_KEY = "KdxoXJfOhu4xYkRJtHU3TBVBQ7rJ46Ad";
+  const BASE_URL = "https://app.ticketmaster.com/discovery/v2/events.json";
+  const categories = ["All", "Music", "Sports", "Arts & Theatre", "Miscellaneous"];
+
+  const fetchEvents = async (category: string) => {
+    setLoading(true);
+    try {
+      const categoryParam =
+        category !== "All" ? `&classificationName=${encodeURIComponent(category)}` : "";
+      const url = `${BASE_URL}?countryCode=ZA${categoryParam}&apikey=${TM_API_KEY}`;
+
+      const response = await axios.get(url);
+      const data = response.data._embedded?.events || [];
+      setEvents(data);
+    } catch (error) {
+      console.error("Error fetching events:", error);
+      Alert.alert("Error", "Failed to load events.");
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const handleLogout = () => {
+    Alert.alert("Confirm Logout", "Are you sure you want to log out?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Yes, Log Out",
+        onPress: async () => {
+          try {
+            await signOut(auth);
+            Alert.alert("Logged Out", "You have been signed out successfully.");
+            navigation.navigate("Login" as never);
+          } catch (error) {
+            console.error(error);
+            Alert.alert("Error", "Something went wrong while logging out.");
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleAddEvent = () => {
+    if (!newEventName || !newEventDate || !newEventVenue) {
+      Alert.alert("Missing info", "Please fill in all required fields.");
+      return;
+    }
+
+    const newEvent: EventData = {
+      id: Math.random().toString(),
+      name: newEventName,
+      dates: { start: { localDate: newEventDate, localTime: newEventTime } },
+      _embedded: { venues: [{ name: newEventVenue }] },
+    };
+
+    setEvents([newEvent, ...events]);
+    setModalVisible(false);
+    setNewEventName("");
+    setNewEventDate("");
+    setNewEventTime("");
+    setNewEventVenue("");
+  };
+
+  useEffect(() => {
+    fetchEvents(selectedCategory);
+  }, [selectedCategory]);
+
+  if (loading) {
+    return (
+      <View style={styles.loaderContainer}>
+        <ActivityIndicator size="large" color={themecolors.accent} />
+        <Text style={{ color: "#fff", marginTop: 10 }}>Loading events...</Text>
+      </View>
+    );
+  }
 
   return (
-    
-    <ImageBackground style={styles.container} source={require("../assets/pictures/bg6.jpg")}>
+    <ImageBackground
+      style={styles.container}
+      source={require("../assets/pictures/bg6.jpg")}
+    >
       {/* ==== TOP ==== */}
       <View style={styles.topContainer}>
         <View style={styles.topTextContainer}>
           <View style={styles.usernameContainer}>
             <Text style={styles.welcometext}>Hi,</Text>
-            <Text style={styles.name}>{name.username}</Text>
+            <Text style={styles.name}>{user?.displayName || "Guest"}</Text>
           </View>
           <Image
             style={styles.profilePic}
@@ -85,237 +143,198 @@ export default function EventsScreen() {
         </View>
       </View>
 
-      {/* ==== MIDDLE (Scrollable) ==== */}
-      <View style={styles.middleContainer}>
-        {/* Tabs */}
-        <View style={styles.eventTabs}>
-          {Object.values(tabs).map((tab, index) => (
-            <TouchableOpacity key={index} style={styles.eventsSelection}>
-              <Text style={styles.eventText}>{tab}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      {/* ==== CATEGORY TABS ==== */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoryTabsContainer}
+      >
+        {categories.map((cat) => (
+          <TouchableOpacity
+            key={cat}
+            style={[
+              styles.categoryTab,
+              selectedCategory === cat && styles.activeTab,
+            ]}
+            onPress={() => setSelectedCategory(cat)}
+          >
+            <Text
+              style={[
+                styles.categoryText,
+                selectedCategory === cat && styles.activeCategoryText,
+              ]}
+            >
+              {cat}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
-        {/* ==== Vertical ScrollView for event cards ==== */}
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          style={styles.eventScrollContainer}
-          contentContainerStyle={{ paddingBottom: 10 }}
-        >
-          {[1, 2, 3, 4].map((i) => (
-            <View key={i} style={styles.eventCards}>
-              {/* Card Top Section */}
-              <View style={styles.eventcardTop}>
-                <Image
-                  style={styles.eventcardprofilepic}
-                  source={require("../assets/pictures/image1.webp")}
-                />
-                <View style={styles.eventcardtopText}>
-                  <Text style={styles.eventcardUsername}>{name.username}</Text>
-                  <Text style={styles.eventcardDatandTime}>
-                    {date.currentdate} • {date.time}
-                  </Text>
-                </View>
+      {/* ==== SCROLLABLE EVENTS ==== */}
+      <ScrollView
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {events.length > 0 ? (
+          events.map((event) => (
+            <View key={event.id} style={styles.eventCard}>
+              <View style={styles.eventHeader}>
+                <Text style={styles.eventTitle}>{event.name}</Text>
+                <Text style={styles.eventDate}>
+                  {event.dates.start.localDate} • {event.dates.start.localTime || ""}
+                </Text>
               </View>
 
-              {/* Event Image */}
-              <View>
+              {event.images?.[0] && (
                 <Image
-                  style={styles.imagecontainer}
-                  source={require("../assets/pictures/image2.webp")}
+                  source={{ uri: event.images[0].url }}
+                  style={styles.eventImage}
                   resizeMode="cover"
                 />
-              </View>
+              )}
 
-              {/* Event Bottom Text */}
-              <View style={styles.eventbottomText}>
-                <Text style={styles.eventTitle}>{text.eventName}</Text>
-                <Text style={styles.eventDate}>{date.eventDate}</Text>
-                <Text style={styles.eventdetailsText}>{text.eventDetails}</Text>
-              </View>
-              <View>
-                <TouchableOpacity style={styles.rsvpbutton}>
+              <View style={styles.eventFooter}>
+                <Text style={styles.venueText}>
+                  {event._embedded?.venues?.[0]?.name},{" "}
+                  {event._embedded?.venues?.[0]?.city?.name || ""}
+                </Text>
+
+                <TouchableOpacity
+                  style={styles.rsvpButton}
+                  onPress={() => Alert.alert("RSVP", `You selected ${event.name}`)}
+                >
                   <Text style={styles.rsvpText}>RSVP HERE</Text>
                 </TouchableOpacity>
               </View>
             </View>
-          ))}
-        </ScrollView>
-      </View>
+          ))
+        ) : (
+          <Text style={styles.noEvents}>No events found in this category.</Text>
+        )}
+      </ScrollView>
 
-      {/* ==== BOTTOM ==== */}
+      {/* ==== FLOATING ADD EVENT BUTTON ==== */}
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={() => setModalVisible(true)}
+      >
+        <Text style={styles.floatingText}>+</Text>
+      </TouchableOpacity>
+
+      {/* ==== ADD EVENT MODAL ==== */}
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <KeyboardAvoidingView style={styles.modalContainer} behavior="padding">
+          <View style={styles.modalContent}>
+            <Text style={styles.modalHeading}>Add New Event</Text>
+
+            <TextInput
+              placeholder="Event Name"
+              value={newEventName}
+              onChangeText={setNewEventName}
+              style={styles.modalInput}
+            />
+            <TextInput
+              placeholder="Date (YYYY-MM-DD)"
+              value={newEventDate}
+              onChangeText={setNewEventDate}
+              style={styles.modalInput}
+            />
+            <TextInput
+              placeholder="Time (HH:MM)"
+              value={newEventTime}
+              onChangeText={setNewEventTime}
+              style={styles.modalInput}
+            />
+            <TextInput
+              placeholder="Venue"
+              value={newEventVenue}
+              onChangeText={setNewEventVenue}
+              style={styles.modalInput}
+            />
+
+            <TouchableOpacity style={styles.modalButton} onPress={handleAddEvent}>
+              <Text style={styles.modalButtonText}>Add Event</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.modalButton, { backgroundColor: "#888", marginTop: 5 }]}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* ==== BOTTOM NAV ==== */}
       <View style={styles.bottomContainer}>
-        
-          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-            <Text style={styles.logoutText}>Logout</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-            <Text style={styles.logoutText}>Logout</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-            <Text style={styles.logoutText}>Logout</Text>
-          </TouchableOpacity>
-        
+        <TouchableOpacity onPress={handleLogout}>
+          <Text style={styles.bottomText}>Logout</Text>
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Text style={styles.bottomText}>Profile</Text>
+        </TouchableOpacity>
+        <TouchableOpacity>
+          <Text style={styles.bottomText}>Home</Text>
+        </TouchableOpacity>
       </View>
     </ImageBackground>
   );
 }
 
-const deviceWidth = Math.round(Dimensions.get("window").width);
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1, alignItems: "center", justifyContent: "center" },
+  loaderContainer: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#000" },
+  topContainer: { width: deviceWidth - 50, paddingTop: 40 },
+  usernameContainer: { flexDirection: "row", alignItems: "center", gap: 4 },
+  topTextContainer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  welcometext: { color: themecolors.primaryLight, fontSize: 30, fontWeight: "800" },
+  name: { color: themecolors.primaryLight, fontSize: 25, fontWeight: "600" },
+  profilePic: { height: 50, width: 50, borderRadius: 25, resizeMode: "cover" },
+  categoryTabsContainer: { flexGrow: 0, marginVertical: 10, paddingHorizontal: 10 },
+  categoryTab: { paddingVertical: 8, paddingHorizontal: 18, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.15)", marginHorizontal: 5 },
+  activeTab: { backgroundColor: themecolors.accent },
+  categoryText: { color: themecolors.primaryLight, fontWeight: "600" },
+  activeCategoryText: { color: "#000" },
+  scrollContainer: { flex: 1, width: deviceWidth - 50 },
+  eventCard: { backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 12, padding: 10, marginBottom: 20 },
+  eventHeader: { marginBottom: 10 },
+  eventTitle: { color: themecolors.primaryLight, fontWeight: "bold", fontSize: 18 },
+  eventDate: { color: "#ccc", fontSize: 14 },
+  eventImage: { width: "100%", height: 180, borderRadius: 10, marginBottom: 10 },
+  eventFooter: { alignItems: "center", gap: 5 },
+  venueText: { color: themecolors.primaryLight, fontSize: 14 },
+  rsvpButton: { backgroundColor: themecolors.accent, padding: 10, borderRadius: 50, marginTop: 8 },
+  rsvpText: { fontWeight: "700" },
+  noEvents: { color: themecolors.primaryLight, textAlign: "center", marginTop: 20 },
+  bottomContainer: { flexDirection: "row", justifyContent: "space-evenly", width: "100%", backgroundColor: "rgba(0,0,0,0.8)", paddingVertical: 50 },
+  bottomText: { color: "#fff", fontWeight: "bold" },
+
+  // Floating button
+  floatingButton: {
+    position: "absolute",
+    bottom: 80,
+    right: 20,
+    backgroundColor: themecolors.accent,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
-    width: deviceWidth,
+    elevation: 5,
   },
-  topContainer: {
-    flex: 1,
-    width: deviceWidth - 50,
-    paddingTop: 40,
-    
-  },
-  usernameContainer:{
-    flexDirection:"row",
-    alignItems:"center",
-    gap:2
-  },
-  topTextContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  welcometext: {   
-    color:themecolors.primaryLight,
-    fontSize: 30,
-    fontWeight: "800",
-  },
-  name: {
-    fontWeight: "600",
-    fontSize: 25,
-    width:"75%",
-    color:themecolors.primaryLight,
+  floatingText: { color: "#fff", fontSize: 32, fontWeight: "bold" },
 
-
-  },
-  profilePic: {
-    height: 50,
-    width: 50,
-    borderRadius: 25,
-    backgroundColor: themecolors.accent,
-    resizeMode:'cover'
-  },
-
-
-  //Whole middle contaner
-
-
-  middleContainer: {
-    flex: 7,
-    width: deviceWidth - 50,
-  },
-  eventTabs: {
-    flexDirection: "row",
-    gap: 5,
-    marginBottom: 10,
-  },
-  eventsSelection: {
-    backgroundColor: themecolors.accent,
-    padding: 7,
-    borderRadius: 8,
-  },
-  eventText: {
-    fontSize: textsettings.primarySubheading,
-  },
-  eventScrollContainer: {
-    flexGrow: 1,
-  },
-
-  //events Card Container
-
-  eventCards: {
-    borderRadius: 12,
-    marginBottom: 20,
-    padding: 10,
-    backgroundColor:themecolors.accentBg
-  },
-  imagecontainer: {
-    width: "100%",
-    height: 180,
-    borderRadius: 10,
-  },
-  eventcardTop: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 10,
-  },
-  eventcardprofilepic: {
-    width: 45,
-    height: 45,
-    borderRadius: 50,
-    resizeMode:'cover'
-  },
-  eventcardtopText: {
-    flexDirection: "column",
-    alignContent: "center",
-    gap: 5,
-  },
-  eventcardUsername: {
-    color: themecolors.primaryLight,
-    fontSize: textsettings.primarySize,
-    fontWeight: "700",
-  },
-  eventcardDatandTime: {
-    fontSize: textsettings.primaryDate,
-    fontWeight: "600",
-    color: themecolors.primaryLight,
-  },
-  eventbottomText: {
-    gap: 5,
-    marginTop: 10,
-  },
-  eventTitle: {
-    color: themecolors.primaryLight,
-    fontSize: textsettings.primarySize,
-    fontWeight: "700",
-  },
-  eventDate:{
-    color: themecolors.primaryLight,
-    fontWeight:'800',
-  },
-  eventdetailsText: {
-    color: themecolors.primaryLight,
-    fontSize: textsettings.primarySubheading,
-  },
-
-  rsvpbutton:{
-    padding:20,
-    backgroundColor:themecolors.accent,    
-    alignItems:"center",
-    borderRadius:50
-  },
-  rsvpText:{
-    fontWeight:"800",
-  },
-  bottomContainer: {
-    flex: 1,
-    flexDirection:"row",
-    gap:50,
-    backgroundColor:"red"
-  },
-  
- 
-  logoutBtn: {
-    backgroundColor: "#E63946",
-    padding:10,
-    borderRadius: 25,
-  },
-  logoutText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-
-
+  // Modal
+  modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
+  modalContent: { width: deviceWidth - 40, backgroundColor: "#fff", padding: 20, borderRadius: 12 },
+  modalHeading: { fontSize: 22, fontWeight: "700", marginBottom: 20, textAlign: "center" },
+  modalInput: { borderWidth: 1, borderColor: "#ccc", borderRadius: 12, padding: 10, marginBottom: 10 },
+  modalButton: { backgroundColor: themecolors.accent, padding: 12, borderRadius: 50, alignItems: "center" },
+  modalButtonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
 });
