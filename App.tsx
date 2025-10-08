@@ -5,6 +5,7 @@ import Loginpage from './src/loginpage';
 import Signup from './src/signup';
 import EventsScreen from './src/events';
 import CreateEventScreen from './src/createevent';
+import ProfileScreen from './src/profile';
 
 const Stack = createNativeStackNavigator();
 
@@ -12,9 +13,10 @@ const Stack = createNativeStackNavigator();
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Homepage" screenOptions={{ headerShown: false }}>
+      <Stack.Navigator initialRouteName="Profilepage" screenOptions={{ headerShown: false }}>
         
         <Stack.Screen name="Homepage" component={EventsScreen}/>
+        <Stack.Screen name="Profilepage" component={ProfileScreen}/>
         <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
         <Stack.Screen name="Login" component={Loginpage} />
         <Stack.Screen name="Signup" component={Signup} />

@@ -21,6 +21,7 @@ import { auth } from "./config/firebaseConfig";
 import { db } from "./config/firebaseConfig";
 import themecolors from "../themes/themecolors";
 import textsettings from "../themes/textsettings";
+import { collection, addDoc, getDocs } from "firebase/firestore";
 
 const { width: deviceWidth } = Dimensions.get("window");
 
@@ -42,11 +43,16 @@ export default function EventsScreen() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [modalVisible, setModalVisible] = useState(false);
   const [newEventName, setNewEventName] = useState("");
+  const [newEventiImage, setNewEventImage] = useState("");
   const [newEventDate, setNewEventDate] = useState("");
   const [newEventTime, setNewEventTime] = useState("");
   const [newEventVenue, setNewEventVenue] = useState("");
+  const [firestoreEvents, setFirestoreEvents] = useState<EventData[]>([]);
+
 
   const user = auth.currentUser;
+  const imageSrc = { uri: user?.photoURL || 'https://via.placeholder.com/150' };
+
   const navigation = useNavigation();
 
   const TM_API_KEY = "KdxoXJfOhu4xYkRJtHU3TBVBQ7rJ46Ad";
@@ -70,6 +76,20 @@ export default function EventsScreen() {
       setLoading(false);
     }
   };
+  
+  const fetchFirestoreEvents = async () => {
+  try {
+    const snapshot = await getDocs(collection(db, "userEvents"));
+    const eventsFromDb: EventData[] = snapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...(doc.data() as EventData),
+    }));
+    setFirestoreEvents(eventsFromDb);
+  } catch (error) {
+    console.error("Error fetching Firestore events:", error);
+  }
+};
+  
 
   const handleLogout = () => {
     Alert.alert("Confirm Logout", "Are you sure you want to log out?", [
@@ -90,30 +110,48 @@ export default function EventsScreen() {
     ]);
   };
 
-  const handleAddEvent = () => {
-    if (!newEventName || !newEventDate || !newEventVenue) {
-      Alert.alert("Missing info", "Please fill in all required fields.");
-      return;
-    }
+  const handleAddEvent = async () => {
+  if (!newEventName || !newEventDate || !newEventVenue) {
+    Alert.alert("Missing info", "Please fill in all required fields.");
+    return;
+  }
 
-    const newEvent: EventData = {
-      id: Math.random().toString(),
-      name: newEventName,
-      dates: { start: { localDate: newEventDate, localTime: newEventTime } },
-      _embedded: { venues: [{ name: newEventVenue }] },
-    };
+  const newEvent: EventData = {
+    id: Math.random().toString(),
+    name: newEventName,
+    dates: { start: { localDate: newEventDate, localTime: newEventTime } },
+    _embedded: { venues: [{ name: newEventVenue }] },
+    images: newEventiImage ? [{ url: newEventiImage }] : undefined,
+  };
 
-    setEvents([newEvent, ...events]);
+  try {
+    // Save to Firestore
+    const docRef = await addDoc(collection(db, "userEvents"), newEvent);
+    // Add Firestore ID
+    const eventWithId = { ...newEvent, id: docRef.id };
+    // Update Firestore events state
+    setFirestoreEvents([eventWithId, ...firestoreEvents]);
+    // Also update local events display
+    setEvents([eventWithId, ...events]);
+
+    // Reset modal fields
     setModalVisible(false);
     setNewEventName("");
     setNewEventDate("");
     setNewEventTime("");
     setNewEventVenue("");
-  };
+    setNewEventImage("");
+  } catch (error) {
+    console.error("Error saving event to Firestore:", error);
+    Alert.alert("Error", "Failed to save event.");
+  }
+};
+
 
   useEffect(() => {
-    fetchEvents(selectedCategory);
-  }, [selectedCategory]);
+  fetchEvents(selectedCategory);
+  fetchFirestoreEvents();
+}, [selectedCategory]);
 
   if (loading) {
     return (
@@ -129,21 +167,22 @@ export default function EventsScreen() {
       style={styles.container}
       source={require("../assets/pictures/bg6.jpg")}
     >
-      {/* ==== TOP ==== */}
       <View style={styles.topContainer}>
         <View style={styles.topTextContainer}>
           <View style={styles.usernameContainer}>
             <Text style={styles.welcometext}>Hi,</Text>
             <Text style={styles.name}>{user?.displayName || "Guest"}</Text>
           </View>
+          <TouchableOpacity onPress={() =>navigation.navigate("Profilepage")}>
           <Image
             style={styles.profilePic}
-            source={require("../assets/pictures/image1.webp")}
+            source={imageSrc}
+            
           />
+          </TouchableOpacity>
         </View>
       </View>
 
-      {/* ==== CATEGORY TABS ==== */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -170,7 +209,6 @@ export default function EventsScreen() {
         ))}
       </ScrollView>
 
-      {/* ==== SCROLLABLE EVENTS ==== */}
       <ScrollView
         style={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
@@ -213,7 +251,6 @@ export default function EventsScreen() {
         )}
       </ScrollView>
 
-      {/* ==== FLOATING ADD EVENT BUTTON ==== */}
       <TouchableOpacity
         style={styles.floatingButton}
         onPress={() => setModalVisible(true)}
@@ -221,7 +258,6 @@ export default function EventsScreen() {
         <Text style={styles.floatingText}>+</Text>
       </TouchableOpacity>
 
-      {/* ==== ADD EVENT MODAL ==== */}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -256,6 +292,12 @@ export default function EventsScreen() {
               onChangeText={setNewEventVenue}
               style={styles.modalInput}
             />
+            <TextInput
+              placeholder="image Url"
+              value={newEventiImage}
+              onChangeText={setNewEventImage}
+              style={styles.modalInput}
+            />
 
             <TouchableOpacity style={styles.modalButton} onPress={handleAddEvent}>
               <Text style={styles.modalButtonText}>Add Event</Text>
@@ -271,16 +313,15 @@ export default function EventsScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* ==== BOTTOM NAV ==== */}
       <View style={styles.bottomContainer}>
-        <TouchableOpacity onPress={handleLogout}>
-          <Text style={styles.bottomText}>Logout</Text>
+        <TouchableOpacity onPress={handleLogout} style={styles.bottomtabsbuttons} >
+          <Image style={styles.bottomtabsimages} source={require("../assets/pictures/logouttab-removebg-preview.png")}></Image>
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Text style={styles.bottomText}>Profile</Text>
+        <TouchableOpacity onPress={() =>navigation.navigate("Homepage")} style={styles.bottomtabsbuttons} >
+          <Image style={styles.bottomtabsimages} source={require("../assets/pictures/hometab2-removebg-preview.png")}></Image>
         </TouchableOpacity>
-        <TouchableOpacity>
-          <Text style={styles.bottomText}>Home</Text>
+        <TouchableOpacity onPress={() =>navigation.navigate("Profilepage")} style={styles.bottomtabsbuttons} >
+          <Image style={styles.bottomtabsimages} source={require("../assets/pictures/profiletab-removebg-preview.png")}></Image>
         </TouchableOpacity>
       </View>
     </ImageBackground>
@@ -295,7 +336,7 @@ const styles = StyleSheet.create({
   topTextContainer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   welcometext: { color: themecolors.primaryLight, fontSize: 30, fontWeight: "800" },
   name: { color: themecolors.primaryLight, fontSize: 25, fontWeight: "600" },
-  profilePic: { height: 50, width: 50, borderRadius: 25, resizeMode: "cover" },
+  profilePic: { height: 50, width: 50, borderRadius: 25, resizeMode: "cover",    backgroundColor:"#ccc", },
   categoryTabsContainer: { flexGrow: 0, marginVertical: 10, paddingHorizontal: 10 },
   categoryTab: { paddingVertical: 8, paddingHorizontal: 18, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.15)", marginHorizontal: 5 },
   activeTab: { backgroundColor: themecolors.accent },
@@ -312,13 +353,15 @@ const styles = StyleSheet.create({
   rsvpButton: { backgroundColor: themecolors.accent, padding: 10, borderRadius: 50, marginTop: 8 },
   rsvpText: { fontWeight: "700" },
   noEvents: { color: themecolors.primaryLight, textAlign: "center", marginTop: 20 },
-  bottomContainer: { flexDirection: "row", justifyContent: "space-evenly", width: "100%", backgroundColor: "rgba(0,0,0,0.8)", paddingVertical: 50 },
+  bottomContainer: { flexDirection: "row", justifyContent: "space-between", width: "100%", backgroundColor: "rgba(0,0,0,0.8)", padding: 40 },
+  bottomtabsbuttons:{backgroundColor:themecolors.accent,padding:10,borderRadius:25},
+  bottomtabsimages:{width:30,height:30,},
   bottomText: { color: "#fff", fontWeight: "bold" },
 
   // Floating button
   floatingButton: {
     position: "absolute",
-    bottom: 80,
+    bottom: 120,
     right: 20,
     backgroundColor: themecolors.accent,
     width: 60,
@@ -327,6 +370,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     elevation: 5,
+    zIndex:900,
   },
   floatingText: { color: "#fff", fontSize: 32, fontWeight: "bold" },
 

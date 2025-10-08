@@ -4,4 +4,5 @@ export type RootStackParamList = {
   Signup: undefined;
   Homepage: undefined; 
   CreateEvent: undefined;
+  Profilepage: undefined;
 };
