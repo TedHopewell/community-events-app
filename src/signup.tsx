@@ -6,30 +6,27 @@ import {
   TextInput,
   TouchableOpacity,
   Dimensions,
-  KeyboardAvoidingView,
   Alert,
-  ImageBackground
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import {auth} from "./config/firebaseConfig";
-import { useNavigation,NavigationProp  } from "@react-navigation/native";
-import { RootStackParamList } from "./navigation/types"; // adjust path
+import { auth } from "./config/firebaseConfig";
+import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { RootStackParamList } from "./navigation/types";
 import themecolors from "../themes/themecolors";
-
 
 export default function SignUp() {
   const [name, setName] = useState("");
-  const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  
-
-  console.log(auth)
 
   const handleSignUp = async () => {
-    if (!email || !password || !name ) {
+    if (!email || !password || !name) {
       Alert.alert("Error", "Please fill in all fields.");
       return;
     }
@@ -38,64 +35,80 @@ export default function SignUp() {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Update user profile with full name
       await updateProfile(user, {
-        displayName: `${name} ${surname}`,
+        displayName: name,
       });
 
       Alert.alert("Success", "Account created successfully!");
-      navigation.navigate("Homepage")
-
-      console.log("User created:", user);
+      navigation.navigate("Homepage");
     } catch (error) {
       Alert.alert("Signup failed");
       console.log(error);
-      
     }
   };
 
   return (
-    <ImageBackground style={styles.container} source={require("../assets/pictures/bg4.jpg")} resizeMode="cover">
-      <View style={styles.logoContainer}>
-        <Text style={styles.welcometxt}>Sign up Here</Text>
-        <View style={styles.inputBox}>
-          <TextInput
-            style={styles.logindetails}
-            placeholder="Name"
-            value={name}
-            onChangeText={setName}
-          />
-          <TextInput
-            style={styles.logindetails}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-          <TextInput
-            style={styles.logindetails}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-          <View style={styles.hyperlinkcontainer}>
-            <Text style={styles.hyperlinkText}>
-              Have an account already?
-              <Text style={styles.hyperlink} onPress={() => navigation.navigate("Login")}>
-                Login here...
-              </Text>
-            </Text>
-          </View>
-        </View>
-      </View>
+    <ImageBackground
+      style={styles.container}
+      source={require("../assets/pictures/bg4.jpg")}
+      resizeMode="cover"
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1, width: "100%" }}
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center" }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.card}>
+            <Text style={styles.welcometxt}>Create Your Account</Text>
 
-      <View style={styles.loginbuttons}>
-        <TouchableOpacity style={styles.loginbtn} onPress={handleSignUp}>
-          <Text style={styles.btnText}>Sign Up</Text>
-        </TouchableOpacity>
-      </View>
+            <View style={styles.inputBox}>
+              <TextInput
+                style={styles.logindetails}
+                placeholder="Name"
+                placeholderTextColor="#777"
+                value={name}
+                onChangeText={setName}
+              />
+              <TextInput
+                style={styles.logindetails}
+                placeholder="Email"
+                placeholderTextColor="#777"
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+              <TextInput
+                style={styles.logindetails}
+                placeholder="Password"
+                placeholderTextColor="#777"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+              />
+
+              <View style={styles.hyperlinkcontainer}>
+                <Text style={styles.hyperlinkText}>
+                  Already have an account?{" "}
+                  <Text
+                    style={styles.hyperlink}
+                    onPress={() => navigation.navigate("Login")}
+                  >
+                    Login here
+                  </Text>
+                </Text>
+              </View>
+            </View>
+
+            <TouchableOpacity style={styles.loginbtn} onPress={handleSignUp}>
+              <Text style={styles.btnText}>Sign Up</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ImageBackground>
   );
 }
@@ -105,65 +118,72 @@ const deviceWidth = Math.round(Dimensions.get("window").width);
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical:20
   },
-  logoContainer: {
-    flex: 3,
-    paddingTop: 20,
-    justifyContent: "space-between",
+  card: {
     width: deviceWidth - 80,
+    alignItems: "center",
+    paddingVertical: 30,
+    paddingHorizontal: 20,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderRadius: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
   },
   welcometxt: {
-    color: themecolors.primaryLight,
+    color: themecolors.text2,
     fontWeight: "bold",
     textAlign: "center",
-    fontSize: 30,
-    paddingTop: 30,
+    fontSize: 28,
+    marginBottom: 20,
   },
   inputBox: {
-    flexDirection: "column",
-    paddingVertical: 20,
-    
+    width: "100%",
+    alignItems: "center",
   },
   logindetails: {
-    borderBottomWidth: 1,
-    padding: 20,
+    width: "90%",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    padding: 15,
     backgroundColor: "white",
-    marginTop: 20,
-    color:themecolors.text2
+    marginTop: 15,
+    fontSize: 16,
+    color: themecolors.text2,
   },
-  hyperlinkcontainer:{
-    flexDirection:'row',
-    justifyContent:'center',
-    alignContent:'center',
-    top:15,
+  hyperlinkcontainer: {
+    marginTop: 25,
   },
-  hyperlinkText:{
-    color:themecolors.primaryLight
+  hyperlinkText: {
+    color: themecolors.text2,
+    fontSize: 14,
   },
-  hyperlink:{
-    color:themecolors.accent
-  },
-  loginbuttons: {
-    flex: 1,
-    paddingVertical: 30,
-
+  hyperlink: {
+    color: themecolors.accent,
+    fontWeight: "600",
   },
   loginbtn: {
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 2,
     borderRadius: 50,
     width: deviceWidth - 150,
-    top:55,
-    backgroundColor:themecolors.accent,
+    backgroundColor: themecolors.accent,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+    marginTop: 30,
   },
   btnText: {
-    padding:20,
-    fontWeight: "800",
-    color:themecolors.text2
+    paddingVertical: 15,
+    fontWeight: "bold",
+    color: themecolors.text2,
+    fontSize: 18,
   },
 });

@@ -329,34 +329,149 @@ export default function EventsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, alignItems: "center", justifyContent: "center" },
-  loaderContainer: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: "#000" },
-  topContainer: { width: deviceWidth - 50, paddingTop: 40 },
-  usernameContainer: { flexDirection: "row", alignItems: "center", gap: 4 },
-  topTextContainer: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  welcometext: { color: themecolors.primaryLight, fontSize: 30, fontWeight: "800" },
-  name: { color: themecolors.primaryLight, fontSize: 25, fontWeight: "600" },
-  profilePic: { height: 50, width: 50, borderRadius: 25, resizeMode: "cover",    backgroundColor:"#ccc", },
-  categoryTabsContainer: { flexGrow: 0, marginVertical: 10, paddingHorizontal: 10 },
-  categoryTab: { paddingVertical: 8, paddingHorizontal: 18, borderRadius: 20, backgroundColor: "rgba(255,255,255,0.15)", marginHorizontal: 5 },
-  activeTab: { backgroundColor: themecolors.accent },
-  categoryText: { color: themecolors.primaryLight, fontWeight: "600" },
-  activeCategoryText: { color: "#000" },
-  scrollContainer: { flex: 1, width: deviceWidth - 50 },
-  eventCard: { backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 12, padding: 10, marginBottom: 20 },
-  eventHeader: { marginBottom: 10 },
-  eventTitle: { color: themecolors.primaryLight, fontWeight: "bold", fontSize: 18 },
-  eventDate: { color: "#ccc", fontSize: 14 },
-  eventImage: { width: "100%", height: 180, borderRadius: 10, marginBottom: 10 },
-  eventFooter: { alignItems: "center", gap: 5 },
-  venueText: { color: themecolors.primaryLight, fontSize: 14 },
-  rsvpButton: { backgroundColor: themecolors.accent, padding: 10, borderRadius: 50, marginTop: 8 },
-  rsvpText: { fontWeight: "700" },
-  noEvents: { color: themecolors.primaryLight, textAlign: "center", marginTop: 20 },
-  bottomContainer: { flexDirection: "row", justifyContent: "space-between", width: "100%", backgroundColor: "rgba(0,0,0,0.8)", padding: 40 },
-  bottomtabsbuttons:{backgroundColor:themecolors.accent,padding:10,borderRadius:25},
-  bottomtabsimages:{width:30,height:30,},
-  bottomText: { color: "#fff", fontWeight: "bold" },
+  container: { 
+    flex: 1, 
+    alignItems: "center", 
+    justifyContent: "center" 
+  },
+  loaderContainer: { 
+    flex: 1, 
+    alignItems: "center", 
+    justifyContent: "center", 
+    backgroundColor: "#000" 
+  },
+  topContainer: { 
+    width: deviceWidth - 40, 
+    paddingTop: 40,
+    marginBottom: 10
+  },
+  topTextContainer: { 
+    flexDirection: "row", 
+    justifyContent: "space-between", 
+    alignItems: "center" 
+  },
+  usernameContainer: { 
+    flexDirection: "row", 
+    alignItems: "center", 
+    gap: 4 
+  },
+  welcometext: { 
+    color: themecolors.primaryLight, 
+    fontSize: 28, 
+    fontWeight: "700" 
+  },
+  name: { 
+    color: themecolors.primaryLight, 
+    fontSize: 24, 
+    fontWeight: "600" 
+  },
+  profilePic: { 
+    height: 50, 
+    width: 50, 
+    borderRadius: 25, 
+    resizeMode: "cover", 
+    backgroundColor:"#ccc" 
+  },
+
+  categoryTabsContainer: { 
+    flexGrow: 0, 
+    marginVertical: 10, 
+    paddingHorizontal: 10 
+  },
+  categoryTab: { 
+    paddingVertical: 8, 
+    paddingHorizontal: 18, 
+    borderRadius: 20, 
+    backgroundColor: "rgba(255,255,255,0.15)", 
+    marginHorizontal: 5 
+  },
+  activeTab: { 
+    backgroundColor: themecolors.accent 
+  },
+  categoryText: { 
+    color: themecolors.primaryLight, 
+    fontWeight: "600" 
+  },
+  activeCategoryText: { 
+    color: "#000" 
+  },
+
+  scrollContainer: { 
+    flex: 1, 
+    width: deviceWidth - 40, 
+    marginBottom: 20 
+  },
+  eventCard: { 
+    backgroundColor: "rgba(255,255,255,0.1)", 
+    borderRadius: 12, 
+    padding: 12, 
+    marginBottom: 20, 
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 4
+  },
+  eventHeader: { 
+    marginBottom: 8 
+  },
+  eventTitle: { 
+    color: themecolors.primaryLight, 
+    fontWeight: "700", 
+    fontSize: 18 
+  },
+  eventDate: { 
+    color: "#ccc", 
+    fontSize: 14 
+  },
+  eventImage: { 
+    width: "100%", 
+    height: 180, 
+    borderRadius: 12, 
+    marginBottom: 10 
+  },
+  eventFooter: { 
+    alignItems: "center", 
+    gap: 6 
+  },
+  venueText: { 
+    color: themecolors.primaryLight, 
+    fontSize: 14 
+  },
+  rsvpButton: { 
+    backgroundColor: themecolors.accent, 
+    paddingVertical: 10, 
+    paddingHorizontal: 20, 
+    borderRadius: 50, 
+    marginTop: 8 
+  },
+  rsvpText: { 
+    fontWeight: "700", 
+    color: themecolors.text2 
+  },
+  noEvents: { 
+    color: themecolors.primaryLight, 
+    textAlign: "center", 
+    marginTop: 20 
+  },
+
+  bottomContainer: { 
+    flexDirection: "row", 
+    justifyContent: "space-around", 
+    width: "100%", 
+    backgroundColor: "rgba(0,0,0,0.85)", 
+    paddingVertical: 15 
+  },
+  bottomtabsbuttons: { 
+    backgroundColor: themecolors.accent, 
+    padding: 12, 
+    borderRadius: 25, 
+    alignItems: "center" 
+  },
+  bottomtabsimages: { 
+    width: 30, 
+    height: 30 
+  },
 
   // Floating button
   floatingButton: {
@@ -369,16 +484,50 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
-    elevation: 5,
-    zIndex:900,
+    elevation: 6,
+    zIndex: 999,
   },
-  floatingText: { color: "#fff", fontSize: 32, fontWeight: "bold" },
+  floatingText: { 
+    color: "#fff", 
+    fontSize: 32, 
+    fontWeight: "bold" 
+  },
 
   // Modal
-  modalContainer: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
-  modalContent: { width: deviceWidth - 40, backgroundColor: "#fff", padding: 20, borderRadius: 12 },
-  modalHeading: { fontSize: 22, fontWeight: "700", marginBottom: 20, textAlign: "center" },
-  modalInput: { borderWidth: 1, borderColor: "#ccc", borderRadius: 12, padding: 10, marginBottom: 10 },
-  modalButton: { backgroundColor: themecolors.accent, padding: 12, borderRadius: 50, alignItems: "center" },
-  modalButtonText: { color: "#fff", fontWeight: "700", fontSize: 16 },
+  modalContainer: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center", 
+    backgroundColor: "rgba(0,0,0,0.5)" 
+  },
+  modalContent: { 
+    width: deviceWidth - 40, 
+    backgroundColor: "#fff", 
+    padding: 20, 
+    borderRadius: 14 
+  },
+  modalHeading: { 
+    fontSize: 22, 
+    fontWeight: "700", 
+    marginBottom: 20, 
+    textAlign: "center" 
+  },
+  modalInput: { 
+    borderWidth: 1, 
+    borderColor: "#ccc", 
+    borderRadius: 12, 
+    padding: 12, 
+    marginBottom: 12 
+  },
+  modalButton: { 
+    backgroundColor: themecolors.accent, 
+    paddingVertical: 12, 
+    borderRadius: 50, 
+    alignItems: "center" 
+  },
+  modalButtonText: { 
+    color: "#fff", 
+    fontWeight: "700", 
+    fontSize: 16 
+  }
 });

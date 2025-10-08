@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,221 +7,193 @@ import {
   TextInput,
   TouchableOpacity,
   Dimensions,
-  KeyboardAvoidingView,
   Alert,
-  ImageBackground
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup,getAuth,signInWithCredential  } from "firebase/auth";
-import { sendPasswordResetEmail } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithCredential,
+  sendPasswordResetEmail,
+} from "firebase/auth";
 import * as Google from "expo-auth-session/providers/google";
-
+import * as WebBrowser from "expo-web-browser";
 import { auth } from "./config/firebaseConfig";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { RootStackParamList } from "./navigation/types"; // adjust path
+import { RootStackParamList } from "./navigation/types";
 import themecolors from "../themes/themecolors";
 
-
+WebBrowser.maybeCompleteAuthSession();
 
 export default function Loginpage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
-  const handlePasswordReset = async () => {
-  if (!email) {
-    Alert.alert("Missing Email", "Please enter your email first.");
-    return;
-  }
+  // ✅ Google Auth Request
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    expoClientId: "WEB_CLIENT_ID_FROM_GOOGLE", // Web client ID
+    iosClientId: "IOS_CLIENT_ID",
+    androidClientId: "ANDROID_CLIENT_ID",
+    webClientId: "WEB_CLIENT_ID_FROM_GOOGLE", // same as expoClientId
+  });
 
-  try {
-    await sendPasswordResetEmail(auth, email);
-    Alert.alert(
-      "Password Reset",
-      "A password reset link has been sent to your email."
-    );
-  } catch (error) {
-    console.error(error);
-    Alert.alert("Error");
-  }
-};
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { id_token } = response.params;
+      const credential = GoogleAuthProvider.credential(id_token);
 
+      signInWithCredential(auth, credential)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          Alert.alert("Success", `Welcome ${user.displayName || user.email}!`);
+          navigation.navigate("Homepage");
+        })
+        .catch((error) => {
+          console.error(error);
+          Alert.alert("Error", "Google Sign-In failed");
+        });
+    }
+  }, [response]);
 
-// const [request, response, promptAsync] = Google.useAuthRequest({
-//     expoClientId: "YOUR_EXPO_CLIENT_ID.apps.googleusercontent.com",
-//     webClientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
-//     androidClientId: "YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com",
-//     iosClientId: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
-//   });
-//   const handleGoogleSignIn = async () => {
-//     try {
-//       const result = await promptAsync();
-//       if (result.type === "success") {
-//         const { id_token } = result.params;
-//         const credential = GoogleAuthProvider.credential(id_token);
-//         await signInWithCredential(auth, credential);
-//         Alert.alert("Success", "Logged in with Google!");
-//       } else {
-//         Alert.alert("Cancelled", "Google sign in cancelled");
-//       }
-//     } catch (err) {
-//       console.error(err);
-//       Alert.alert("Error", "Google Sign-In failed");
-//     }
-//   };
+  const handleGoogleSignIn = () => {
+    // ✅ useProxy must be true in Expo Go
+    promptAsync({ useProxy: true });
+  };
 
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please enter both email and password.");
       return;
     }
-    console.log('here');
-    
+
     try {
-      console.log('in');
-      
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-      console.log("Logged in:", user.email);
-      navigation.navigate("Homepage")
       Alert.alert("Success", `Welcome back, ${user.email}!`);
-      
-      
-      
-
+      navigation.navigate("Homepage");
     } catch (error) {
       console.error(error);
-      Alert.alert("Login failed, email or password incorrect. Please try again.");
-      console.log(error);
-      
+      Alert.alert("Login failed", "Email or password incorrect.");
     }
   };
 
- 
+  const handlePasswordReset = async () => {
+    if (!email) {
+      Alert.alert("Missing Email", "Please enter your email first.");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      Alert.alert("Password Reset", "A password reset link has been sent to your email.");
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Failed to send reset email.");
+    }
+  };
 
   return (
-    <ImageBackground style={styles.container} source={require("../assets/pictures/mainbg.png")} resizeMode="cover">
-      <View style={styles.loginContainer}>
-        <Text style={styles.welcometxt}>Welcome Back</Text>
-        <View style={styles.inputBox}>
-          <TextInput
-            placeholder="Email"
-            value={email}
-            onChangeText={(text) => setEmail(text)}
-            style={styles.logindetails}
-            keyboardType="email-address"
-          />
+    <ImageBackground
+      style={styles.container}
+      source={require("../assets/pictures/mainbg.png")}
+      resizeMode="cover"
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <View style={styles.card}>
+            <Text style={styles.welcometxt}>Welcome Back 👋</Text>
+            <Text style={styles.subtitle}>Sign in to continue</Text>
 
-          <TextInput
-            style={styles.logindetails}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-          <View style={styles.hyperlink}>
-            <Text style={styles.inputboxBottomText}>Don't have an account yet?<Text style={styles.signupHyperlink} onPress={() =>navigation.navigate("Signup")}>Sign up here...</Text></Text>
-            <Text style={styles.inputboxBottomText}>Forfot Password?<Text style={styles.signupHyperlink} onPress={() => handlePasswordReset(email)}>Reset Password here...</Text></Text>
+            <View style={styles.inputBox}>
+              <TextInput
+                placeholder="Email"
+                value={email}
+                onChangeText={setEmail}
+                style={styles.input}
+                keyboardType="email-address"
+                placeholderTextColor="#aaa"
+              />
+
+              <TextInput
+                placeholder="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                style={styles.input}
+                placeholderTextColor="#aaa"
+              />
+
+              <TouchableOpacity onPress={handlePasswordReset}>
+                <Text style={styles.forgotPassword}>Forgot password?</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity style={styles.loginbtn} onPress={handleLogin}>
+              <Text style={styles.btnText}>Sign In</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.loginbtn, styles.googleBtn]}
+              onPress={handleGoogleSignIn}
+            >
+              <Image
+                source={require("../assets/pictures/googlelogo.png")}
+                style={styles.googleicon}
+              />
+              <Text style={[styles.btnText, { color: "#000" }]}>Sign in with Google</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.signupText}>
+              Don’t have an account?{" "}
+              <Text style={styles.signupLink} onPress={() => navigation.navigate("Signup")}>
+                Sign up here
+              </Text>
+            </Text>
           </View>
-        </View>
-        
-      </View>
-      
-
-      <View style={styles.loginbuttons}>
-        <TouchableOpacity style={styles.loginbtn} onPress={handleLogin}>
-          <Text style={styles.btnText}>SignIn</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.loginbtn} onPress={handleLogin}>
-          <Image
-              source={require("../assets/pictures/googlelogo.png")}
-              style={styles.googleicon}
-            
-            /> 
-          
-          <Text style={styles.btnText}>SignIn</Text>
-        </TouchableOpacity>
-      </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </ImageBackground>
   );
 }
 
-const deviceWidth = Math.round(Dimensions.get("window").width);
+const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    flexDirection: "column",
-    backgroundColor: themecolors.primary,
+  container: { flex: 1, backgroundColor: themecolors.primary },
+  card: {
+    width: width * 0.85,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderRadius: 20,
+    paddingVertical: 40,
+    paddingHorizontal: 25,
     alignItems: "center",
-    alignContent: "center",
-    
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 6,
   },
-  bgcontainer:{
-
-  },
-  loginContainer: {
-    flex: 2,
-    justifyContent: "space-between",
-    width: deviceWidth - 80,
-    paddingTop:50,
-  },
-  welcometxt: {
-    color: themecolors.primaryLight,
-    fontWeight: "bold",
-    textAlign: "center",
-    fontSize: 30,
-    paddingTop: 30,
-  },
-  inputBox: {
-    flexDirection: "column",
-  },
-  logindetails: {
-    borderBottomWidth: 1,
-    padding: 20,
-    backgroundColor: "white",
-    marginTop: 20,
-    color:themecolors.text2
-  },
-  hyperlink:{
-    flexDirection:'column',
-    alignItems:'center',
-    gap:5,
-    top:5,
-    paddingTop:10,
-  },
-  inputboxBottomText:{
-        color:themecolors.primaryLight
-
-  },
-  signupHyperlink:{
-    color:themecolors.accent
-  },
-  
-  loginbuttons: {
-    flex: 1,
-    paddingVertical: 28,
-    flexDirection:'column',
-    justifyContent:'space-evenly'
-  },
-  loginbtn: {
-    backgroundColor:themecolors.accent,
-    flexDirection:'row',
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    borderRadius: 50,
-    width: deviceWidth - 150,
-    padding:15,
-    gap:5,
-    top:20
-  },
-  googleicon:{
-    width:30,
-    height:30
-  },
-  btnText: {
-    fontWeight:"800",
-    color:themecolors.text2
-  },
+  welcometxt: { fontSize: 28, fontWeight: "bold", color: themecolors.primaryDark, textAlign: "center" },
+  subtitle: { fontSize: 16, color: themecolors.text2, marginBottom: 30, textAlign: "center" },
+  inputBox: { width: "100%" },
+  input: { backgroundColor: "white", borderRadius: 10, padding: 15, fontSize: 16, marginBottom: 15, borderWidth: 1, borderColor: "#ddd", color: "#333" },
+  forgotPassword: { textAlign: "right", color: themecolors.accent, fontWeight: "500", marginBottom: 15 },
+  loginbtn: { width: "100%", backgroundColor: themecolors.accent, borderRadius: 50, paddingVertical: 15, alignItems: "center", justifyContent: "center", marginVertical: 10 },
+  googleBtn: { flexDirection: "row", backgroundColor: "white", borderColor: "#ddd", borderWidth: 1, justifyContent: "center", alignItems: "center" },
+  googleicon: { width: 24, height: 24, marginRight: 10 },
+  btnText: { fontSize: 16, fontWeight: "600", color: "#fff" },
+  signupText: { marginTop: 20, color: themecolors.text2, textAlign: "center" },
+  signupLink: { color: themecolors.accent, fontWeight: "bold" },
 });
