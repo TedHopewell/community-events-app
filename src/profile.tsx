@@ -23,16 +23,16 @@ const Profilepage = () => {
   const [uploading, setUploading] = useState(false);
   const [photoURL, setPhotoURL] = useState(user?.photoURL || 'https://via.placeholder.com/150');
 
-  // 🔥 Refresh Events screen after updating image
+  // Refresh Events screen after updating image
   const refreshEventsScreen = () => {
     navigation.navigate("Homepage", { refresh: true });
   };
 
   const handleLogout = () => {
     Alert.alert("Confirm Logout", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
+      { text: "❌", style: "cancel" },
       {
-        text: "Yes, Log Out",
+        text: "✅",
         onPress: async () => {
           try {
             await signOut(auth);
@@ -72,7 +72,7 @@ const Profilepage = () => {
         setPhotoURL(uri);
         Alert.alert("Success", "Profile picture updated!");
 
-        // 🔥 Trigger a refresh in Events screen
+        // Trigger a refresh in Events screen
         refreshEventsScreen();
       } catch (error) {
         console.error(error);
@@ -161,7 +161,8 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   backText: {
-    fontSize: 24,
+    fontSize: 30,
+    fontWeight:'700',
     color: '#fff',
   },
   title: {

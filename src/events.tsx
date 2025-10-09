@@ -78,13 +78,11 @@ export default function EventsScreen() {
     }
   };
 
-  const getAllEvents = () => [...firestoreEvents, ...events];
-
   const handleLogout = () => {
     Alert.alert("Confirm Logout", "Are you sure you want to log out?", [
-      { text: "Cancel", style: "cancel" },
+      { text: "❌", style: "cancel" },
       {
-        text: "Yes, Log Out",
+        text: "✅",
         onPress: async () => {
           try {
             await signOut(auth);
@@ -130,6 +128,7 @@ export default function EventsScreen() {
 
     const newEvent = {
       name: newEventName,
+      category: selectedCategory, // assign tab category
       dates: { start: { localDate: newEventDate, localTime: newEventTime } },
       _embedded: {
         venues: [
@@ -158,12 +157,12 @@ export default function EventsScreen() {
     }
   };
 
-  // 🗑️ Delete Firestore Event
+  // Delete Firestore Event
   const handleDeleteEvent = async (eventId) => {
     Alert.alert("Delete Event", "Are you sure you want to delete this event?", [
-      { text: "Cancel", style: "cancel" },
+      { text: "❌", style: "cancel" },
       {
-        text: "Yes, Delete",
+        text: "✅",
         onPress: async () => {
           try {
             await deleteDoc(doc(db, "userEvents", eventId));
@@ -199,7 +198,18 @@ export default function EventsScreen() {
     setLoading(false);
   };
 
-  const combinedEvents = getAllEvents();
+  // --- Filter events according to selected tab ---
+  const filteredFirestoreEvents =
+    selectedCategory === "All"
+      ? firestoreEvents
+      : firestoreEvents.filter((e) => e.category === selectedCategory);
+
+  const filteredTMEvents =
+    selectedCategory === "All"
+      ? events
+      : events.filter((e) => e.classifications?.[0]?.segment?.name === selectedCategory);
+
+  const combinedEvents = [...filteredFirestoreEvents, ...filteredTMEvents];
 
   return (
     <ImageBackground style={styles.container} source={require("../assets/pictures/bg6.jpg")}>
@@ -280,7 +290,6 @@ export default function EventsScreen() {
         <Text style={styles.floatingText}>+</Text>
       </TouchableOpacity>
 
-
       {/* Add Event Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <KeyboardAvoidingView style={styles.modalContainer} behavior="padding">
@@ -332,6 +341,7 @@ export default function EventsScreen() {
     </ImageBackground>
   );
 }
+
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
@@ -460,7 +470,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   deleteText: {
-    color: "#fff",
+    color: themecolors.primaryLight,
     fontWeight: "700",
   },
   noEvents: { 
@@ -499,7 +509,7 @@ const styles = StyleSheet.create({
     zIndex: 999 
   },
   floatingText: { 
-    color: "#fff", 
+    color: themecolors.primaryLight, 
     fontSize: 32, 
     fontWeight: "bold" 
   },
@@ -511,7 +521,7 @@ const styles = StyleSheet.create({
   },
   modalContent: { 
     width: deviceWidth - 40, 
-    backgroundColor: "#fff", 
+    backgroundColor: themecolors.primaryLight, 
     padding: 20, 
     borderRadius: 14 
   },
@@ -535,7 +545,7 @@ const styles = StyleSheet.create({
     alignItems: "center" 
   },
   modalButtonText: { 
-    color: "#fff", 
+    color: themecolors.primaryLight, 
     fontWeight: "700", 
     fontSize: 16 
   },

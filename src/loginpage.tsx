@@ -92,7 +92,7 @@ export default function Loginpage() {
       );
       const user = userCredential.user;
       navigation.navigate("Homepage");
-      Alert.alert("Success", `Welcome back, ${user.email}!`);
+      Alert.alert("Success", `Welcome back, ${user.displayName}!`);
     } catch (error) {
       console.error(error);
       Alert.alert("Login failed", "Email or password incorrect.");
