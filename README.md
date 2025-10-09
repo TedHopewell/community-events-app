@@ -47,6 +47,6 @@ React Navigation
 
 Axios for HTTP requests
 
-JavaScript / TypeScript (if using TS types)
+JavaScript / TypeScript 
 
 Styling: StyleSheet with responsive layouts
