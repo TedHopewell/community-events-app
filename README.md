@@ -1,8 +1,8 @@
-# Community Events App
+## Community Events App
 
 A React Native mobile app for discovering and managing local events in South Africa. The app integrates Ticketmaster API for public events and Firebase Firestore for user-created events. Users can sign up, log in, RSVP to events, and manage their profile.
 
-# Features
+## Features
 
 Authentication: Sign up and log in using Firebase Authentication.
 
@@ -22,7 +22,7 @@ Image Upload: Upload images for events using device gallery.
 
 Loading Indicators: Loader displayed while fetching events.
 
-# Screens
+## Screens
 
 Homepage: Shows combined list of Ticketmaster and user-created events.
 
@@ -33,7 +33,7 @@ Profile Page: View and edit user profile.
 SignUp / Login: Authentication screens for new and existing users.
 
 
-# Technologies Used
+## Technologies Used
 
 React Native (Expo)
 
