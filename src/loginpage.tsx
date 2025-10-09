@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import {
   signInWithEmailAndPassword,
@@ -31,6 +32,7 @@ WebBrowser.maybeCompleteAuthSession();
 export default function Loginpage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const [request, response, promptAsync] = Google.useAuthRequest({
@@ -40,21 +42,22 @@ export default function Loginpage() {
   });
 
   useEffect(() => {
-  if (response?.type === "success") {
-    const { id_token } = response.params; // Firebase needs id_token
-    const credential = GoogleAuthProvider.credential(id_token);
-    signInWithCredential(auth, credential)
-      .then(() => {
-        Alert.alert("Success", "Signed in with Google!");
-        navigation.navigate("Homepage");
-      })
-      .catch((error) => {
-        console.error(error);
-        Alert.alert("Error", "Google Sign-In failed.");
-      });
-  }
-}, [response]);
-
+    if (response?.type === "success") {
+      const { id_token } = response.params;
+      const credential = GoogleAuthProvider.credential(id_token);
+      setLoading(true);
+      signInWithCredential(auth, credential)
+        .then(() => {
+          Alert.alert("Success", "Signed in with Google!");
+          navigation.navigate("Homepage");
+        })
+        .catch((error) => {
+          console.error(error);
+          Alert.alert("Error", "Google Sign-In failed.");
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [response]);
 
   const handlePasswordReset = async () => {
     if (!email) {
@@ -80,6 +83,7 @@ export default function Loginpage() {
       return;
     }
 
+    setLoading(true);
     try {
       const userCredential = await signInWithEmailAndPassword(
         auth,
@@ -92,6 +96,8 @@ export default function Loginpage() {
     } catch (error) {
       console.error(error);
       Alert.alert("Login failed", "Email or password incorrect.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -178,6 +184,12 @@ export default function Loginpage() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={themecolors.accent} />
+        </View>
+      )}
     </ImageBackground>
   );
 }
@@ -268,5 +280,15 @@ const styles = StyleSheet.create({
   signupLink: {
     color: themecolors.accent,
     fontWeight: "bold",
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

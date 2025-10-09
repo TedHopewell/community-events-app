@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { auth } from "./config/firebaseConfig";
@@ -22,6 +23,7 @@ export default function SignUp() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
@@ -31,6 +33,7 @@ export default function SignUp() {
       return;
     }
 
+    setLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
@@ -44,6 +47,8 @@ export default function SignUp() {
     } catch (error) {
       Alert.alert("Signup failed");
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -103,12 +108,19 @@ export default function SignUp() {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.loginbtn} onPress={handleSignUp}>
+            <TouchableOpacity style={styles.loginbtn} onPress={handleSignUp} disabled={loading}>
               <Text style={styles.btnText}>Sign Up</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Loader Overlay */}
+      {loading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color={themecolors.accent} />
+        </View>
+      )}
     </ImageBackground>
   );
 }
@@ -185,5 +197,16 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: themecolors.text2,
     fontSize: 18,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999,
   },
 });

@@ -13,7 +13,7 @@ import {
   Modal,
   TextInput,
   KeyboardAvoidingView,
-  Platform
+  Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
@@ -31,7 +31,7 @@ export default function EventsScreen() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [modalVisible, setModalVisible] = useState(false);
   const [newEventName, setNewEventName] = useState("");
-  const [newEventImageUri, setNewEventImageUri] = useState(""); // updated
+  const [newEventImageUri, setNewEventImageUri] = useState("");
   const [newEventDate, setNewEventDate] = useState("");
   const [newEventTime, setNewEventTime] = useState("");
   const [newEventVenue, setNewEventVenue] = useState("");
@@ -120,6 +120,7 @@ export default function EventsScreen() {
     }
   };
 
+  // Add event to Firestore (with coordinates)
   const handleAddEvent = async () => {
     if (!newEventName || !newEventDate || !newEventVenue) {
       Alert.alert("Missing info", "Please fill in all required fields.");
@@ -130,7 +131,14 @@ export default function EventsScreen() {
       id: Math.random().toString(),
       name: newEventName,
       dates: { start: { localDate: newEventDate, localTime: newEventTime } },
-      _embedded: { venues: [{ name: newEventVenue }] },
+      _embedded: {
+        venues: [
+          {
+            name: newEventVenue,
+            location: { latitude: -26.2041, longitude: 28.0473 }, // Johannesburg default
+          },
+        ],
+      },
       images: newEventImageUri ? [{ url: newEventImageUri }] : undefined,
     };
 
@@ -163,6 +171,12 @@ export default function EventsScreen() {
       </View>
     );
   }
+  const refreshPage = async () => {
+  setLoading(true);
+  await fetchEvents(selectedCategory);
+  await fetchFirestoreEvents();
+  setLoading(false);
+};
 
   const combinedEvents = getAllEvents();
 
@@ -189,7 +203,9 @@ export default function EventsScreen() {
             style={[styles.categoryTab, selectedCategory === cat && styles.activeTab]}
             onPress={() => setSelectedCategory(cat)}
           >
-            <Text style={[styles.categoryText, selectedCategory === cat && styles.activeCategoryText]}>{cat}</Text>
+            <Text style={[styles.categoryText, selectedCategory === cat && styles.activeCategoryText]}>
+              {cat}
+            </Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -198,21 +214,32 @@ export default function EventsScreen() {
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {combinedEvents.length > 0 ? (
           combinedEvents.map((event) => (
-            <View key={event.id} style={styles.eventCard}>
+            <TouchableOpacity
+              key={event.id}
+              style={styles.eventCard}
+              onPress={() => navigation.navigate("EventDetails", { event })}
+            >
               <View style={styles.eventHeader}>
                 <Text style={styles.eventTitle}>{event.name}</Text>
-                <Text style={styles.eventDate}>{event.dates?.start?.localDate} • {event.dates?.start?.localTime || ""}</Text>
+                <Text style={styles.eventDate}>
+                  {event.dates?.start?.localDate} • {event.dates?.start?.localTime || ""}
+                </Text>
               </View>
 
-              {event.images?.[0] && <Image source={{ uri: event.images[0].url }} style={styles.eventImage} resizeMode="cover" />}
+              {event.images?.[0] && (
+                <Image source={{ uri: event.images[0].url }} style={styles.eventImage} resizeMode="cover" />
+              )}
 
               <View style={styles.eventFooter}>
                 <Text style={styles.venueText}>{event._embedded?.venues?.[0]?.name}</Text>
-                <TouchableOpacity style={styles.rsvpButton} onPress={() => Alert.alert("RSVP", `You RSVPed for ${event.name}`)}>
+                <TouchableOpacity
+                  style={styles.rsvpButton}
+                  onPress={() => Alert.alert("RSVP", `You RSVPed for ${event.name}`)}
+                >
                   <Text style={styles.rsvpText}>RSVP HERE</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </TouchableOpacity>
           ))
         ) : (
           <Text style={styles.noEvents}>No events found.</Text>
@@ -235,7 +262,10 @@ export default function EventsScreen() {
             <TextInput placeholder="Time (HH:MM)" value={newEventTime} onChangeText={setNewEventTime} style={styles.modalInput} />
             <TextInput placeholder="Venue" value={newEventVenue} onChangeText={setNewEventVenue} style={styles.modalInput} />
 
-            <TouchableOpacity style={[styles.modalInput, { justifyContent: "center", alignItems: "center" }]} onPress={pickImage}>
+            <TouchableOpacity
+              style={[styles.modalInput, { justifyContent: "center", alignItems: "center" }]}
+              onPress={pickImage}
+            >
               {newEventImageUri ? (
                 <Image source={{ uri: newEventImageUri }} style={{ width: 100, height: 100, borderRadius: 12 }} />
               ) : (
@@ -247,18 +277,22 @@ export default function EventsScreen() {
               <Text style={styles.modalButtonText}>Add Event</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.modalButton, { backgroundColor: "#888", marginTop: 5 }]} onPress={() => setModalVisible(false)}>
+            <TouchableOpacity
+              style={[styles.modalButton, { backgroundColor: "#888", marginTop: 5 }]}
+              onPress={() => setModalVisible(false)}
+            >
               <Text style={styles.modalButtonText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
       </Modal>
 
+      {/* Bottom Tabs */}
       <View style={styles.bottomContainer}>
         <TouchableOpacity onPress={handleLogout} style={styles.bottomtabsbuttons}>
           <Image style={styles.bottomtabsimages} source={require("../assets/pictures/logouttab-removebg-preview.png")} />
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => navigation.navigate("Homepage")} style={styles.bottomtabsbuttons}>
+        <TouchableOpacity onPress={refreshPage} style={styles.bottomtabsbuttons}>
           <Image style={styles.bottomtabsimages} source={require("../assets/pictures/hometab2-removebg-preview.png")} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate("Profilepage")} style={styles.bottomtabsbuttons}>
@@ -268,7 +302,6 @@ export default function EventsScreen() {
     </ImageBackground>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: "center", justifyContent: "center" },
@@ -295,7 +328,7 @@ const styles = StyleSheet.create({
   rsvpButton: { backgroundColor: themecolors.accent, paddingVertical: 10, paddingHorizontal: 20, borderRadius: 50, marginTop: 8 },
   rsvpText: { fontWeight: "700", color: themecolors.text2 },
   noEvents: { color: themecolors.primaryLight, textAlign: "center", marginTop: 20 },
-  bottomContainer: { flexDirection: "row", justifyContent: "space-around", width: "100%", backgroundColor: "rgba(0,0,0,0.85)", paddingVertical: 15 },
+  bottomContainer: { flexDirection: "row", justifyContent: "space-around", width: "100%", backgroundColor: "rgba(0,0,0,0.85)", paddingVertical: 45 },
   bottomtabsbuttons: { backgroundColor: themecolors.accent, padding: 12, borderRadius: 25, alignItems: "center" },
   bottomtabsimages: { width: 30, height: 30 },
   floatingButton: { position: "absolute", bottom: 120, right: 20, backgroundColor: themecolors.accent, width: 60, height: 60, borderRadius: 30, alignItems: "center", justifyContent: "center", elevation: 6, zIndex: 999 },
