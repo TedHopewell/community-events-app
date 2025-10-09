@@ -33,35 +33,45 @@ export default function Loginpage() {
   const [password, setPassword] = useState("");
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
-  // ✅ Google Auth Request
   const [request, response, promptAsync] = Google.useAuthRequest({
-    expoClientId: "WEB_CLIENT_ID_FROM_GOOGLE", // Web client ID
-    iosClientId: "IOS_CLIENT_ID",
-    androidClientId: "ANDROID_CLIENT_ID",
-    webClientId: "WEB_CLIENT_ID_FROM_GOOGLE", // same as expoClientId
+    androidClientId: "YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com",
+    iosClientId: "YOUR_IOS_CLIENT_ID.apps.googleusercontent.com",
+    webClientId: "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com",
   });
 
   useEffect(() => {
-    if (response?.type === "success") {
-      const { id_token } = response.params;
-      const credential = GoogleAuthProvider.credential(id_token);
+  if (response?.type === "success") {
+    const { id_token } = response.params; // Firebase needs id_token
+    const credential = GoogleAuthProvider.credential(id_token);
+    signInWithCredential(auth, credential)
+      .then(() => {
+        Alert.alert("Success", "Signed in with Google!");
+        navigation.navigate("Homepage");
+      })
+      .catch((error) => {
+        console.error(error);
+        Alert.alert("Error", "Google Sign-In failed.");
+      });
+  }
+}, [response]);
 
-      signInWithCredential(auth, credential)
-        .then((userCredential) => {
-          const user = userCredential.user;
-          Alert.alert("Success", `Welcome ${user.displayName || user.email}!`);
-          navigation.navigate("Homepage");
-        })
-        .catch((error) => {
-          console.error(error);
-          Alert.alert("Error", "Google Sign-In failed");
-        });
+
+  const handlePasswordReset = async () => {
+    if (!email) {
+      Alert.alert("Missing Email", "Please enter your email first.");
+      return;
     }
-  }, [response]);
 
-  const handleGoogleSignIn = () => {
-    // ✅ useProxy must be true in Expo Go
-    promptAsync({ useProxy: true });
+    try {
+      await sendPasswordResetEmail(auth, email);
+      Alert.alert(
+        "Password Reset",
+        "A password reset link has been sent to your email."
+      );
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Failed to send reset email.");
+    }
   };
 
   const handleLogin = async () => {
@@ -71,27 +81,26 @@ export default function Loginpage() {
     }
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       const user = userCredential.user;
-      Alert.alert("Success", `Welcome back, ${user.email}!`);
       navigation.navigate("Homepage");
+      Alert.alert("Success", `Welcome back, ${user.email}!`);
     } catch (error) {
       console.error(error);
       Alert.alert("Login failed", "Email or password incorrect.");
     }
   };
 
-  const handlePasswordReset = async () => {
-    if (!email) {
-      Alert.alert("Missing Email", "Please enter your email first.");
-      return;
-    }
+  const handleGoogleSignIn = async () => {
     try {
-      await sendPasswordResetEmail(auth, email);
-      Alert.alert("Password Reset", "A password reset link has been sent to your email.");
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Failed to send reset email.");
+      await promptAsync();
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Error", "Google Sign-In failed.");
     }
   };
 
@@ -120,7 +129,7 @@ export default function Loginpage() {
               <TextInput
                 placeholder="Email"
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(text) => setEmail(text)}
                 style={styles.input}
                 keyboardType="email-address"
                 placeholderTextColor="#aaa"
@@ -152,12 +161,17 @@ export default function Loginpage() {
                 source={require("../assets/pictures/googlelogo.png")}
                 style={styles.googleicon}
               />
-              <Text style={[styles.btnText, { color: "#000" }]}>Sign in with Google</Text>
+              <Text style={[styles.btnText, { color: "#000" }]}>
+                Sign in with Google
+              </Text>
             </TouchableOpacity>
 
             <Text style={styles.signupText}>
               Don’t have an account?{" "}
-              <Text style={styles.signupLink} onPress={() => navigation.navigate("Signup")}>
+              <Text
+                style={styles.signupLink}
+                onPress={() => navigation.navigate("Signup")}
+              >
                 Sign up here
               </Text>
             </Text>
@@ -171,7 +185,10 @@ export default function Loginpage() {
 const { width } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: themecolors.primary },
+  container: {
+    flex: 1,
+    backgroundColor: themecolors.primary,
+  },
   card: {
     width: width * 0.85,
     backgroundColor: "rgba(255,255,255,0.9)",
@@ -185,15 +202,71 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 6,
   },
-  welcometxt: { fontSize: 28, fontWeight: "bold", color: themecolors.primaryDark, textAlign: "center" },
-  subtitle: { fontSize: 16, color: themecolors.text2, marginBottom: 30, textAlign: "center" },
-  inputBox: { width: "100%" },
-  input: { backgroundColor: "white", borderRadius: 10, padding: 15, fontSize: 16, marginBottom: 15, borderWidth: 1, borderColor: "#ddd", color: "#333" },
-  forgotPassword: { textAlign: "right", color: themecolors.accent, fontWeight: "500", marginBottom: 15 },
-  loginbtn: { width: "100%", backgroundColor: themecolors.accent, borderRadius: 50, paddingVertical: 15, alignItems: "center", justifyContent: "center", marginVertical: 10 },
-  googleBtn: { flexDirection: "row", backgroundColor: "white", borderColor: "#ddd", borderWidth: 1, justifyContent: "center", alignItems: "center" },
-  googleicon: { width: 24, height: 24, marginRight: 10 },
-  btnText: { fontSize: 16, fontWeight: "600", color: "#fff" },
-  signupText: { marginTop: 20, color: themecolors.text2, textAlign: "center" },
-  signupLink: { color: themecolors.accent, fontWeight: "bold" },
+  welcometxt: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: themecolors.primaryDark,
+    textAlign: "center",
+  },
+  subtitle: {
+    fontSize: 16,
+    color: themecolors.text2,
+    marginBottom: 30,
+    textAlign: "center",
+  },
+  inputBox: {
+    width: "100%",
+  },
+  input: {
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 15,
+    fontSize: 16,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: "#ddd",
+    color: "#333",
+  },
+  forgotPassword: {
+    textAlign: "right",
+    color: themecolors.accent,
+    fontWeight: "500",
+    marginBottom: 15,
+  },
+  loginbtn: {
+    width: "100%",
+    backgroundColor: themecolors.accent,
+    borderRadius: 50,
+    paddingVertical: 15,
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 10,
+  },
+  googleBtn: {
+    flexDirection: "row",
+    backgroundColor: "white",
+    borderColor: "#ddd",
+    borderWidth: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  googleicon: {
+    width: 24,
+    height: 24,
+    marginRight: 10,
+  },
+  btnText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  signupText: {
+    marginTop: 20,
+    color: themecolors.text2,
+    textAlign: "center",
+  },
+  signupLink: {
+    color: themecolors.accent,
+    fontWeight: "bold",
+  },
 });
