@@ -21,7 +21,8 @@ import { useNavigation } from "@react-navigation/native";
 import { signOut } from "firebase/auth";
 import { auth, db } from "./config/firebaseConfig";
 import themecolors from "../themes/themecolors";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { MaterialIcons } from "@expo/vector-icons";
+import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
 
 const { width: deviceWidth } = Dimensions.get("window");
 
@@ -45,7 +46,7 @@ export default function EventsScreen() {
   const BASE_URL = "https://app.ticketmaster.com/discovery/v2/events.json";
   const categories = ["All", "Music", "Sports", "Arts & Theatre", "Miscellaneous"];
 
-  // Ticketmaster Events
+  // Fetch Ticketmaster Events
   const fetchEvents = async (category) => {
     setLoading(true);
     try {
@@ -63,7 +64,7 @@ export default function EventsScreen() {
     }
   };
 
-  // Firestore Events
+  // Fetch Firestore Events
   const fetchFirestoreEvents = async () => {
     try {
       const snapshot = await getDocs(collection(db, "userEvents"));
@@ -120,7 +121,7 @@ export default function EventsScreen() {
     }
   };
 
-  // Add event to Firestore (with coordinates)
+  // Add event to Firestore
   const handleAddEvent = async () => {
     if (!newEventName || !newEventDate || !newEventVenue) {
       Alert.alert("Missing info", "Please fill in all required fields.");
@@ -128,14 +129,13 @@ export default function EventsScreen() {
     }
 
     const newEvent = {
-      id: Math.random().toString(),
       name: newEventName,
       dates: { start: { localDate: newEventDate, localTime: newEventTime } },
       _embedded: {
         venues: [
           {
             name: newEventVenue,
-            location: { latitude: -26.2041, longitude: 28.0473 }, // Johannesburg default
+            location: { latitude: -26.2041, longitude: 28.0473 },
           },
         ],
       },
@@ -158,6 +158,26 @@ export default function EventsScreen() {
     }
   };
 
+  // 🗑️ Delete Firestore Event
+  const handleDeleteEvent = async (eventId) => {
+    Alert.alert("Delete Event", "Are you sure you want to delete this event?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Yes, Delete",
+        onPress: async () => {
+          try {
+            await deleteDoc(doc(db, "userEvents", eventId));
+            setFirestoreEvents((prev) => prev.filter((e) => e.id !== eventId));
+            Alert.alert("Deleted", "Event has been deleted successfully.");
+          } catch (error) {
+            console.error("Error deleting event:", error);
+            Alert.alert("Error", "Failed to delete event.");
+          }
+        },
+      },
+    ]);
+  };
+
   useEffect(() => {
     fetchEvents(selectedCategory);
     fetchFirestoreEvents();
@@ -171,12 +191,13 @@ export default function EventsScreen() {
       </View>
     );
   }
+
   const refreshPage = async () => {
-  setLoading(true);
-  await fetchEvents(selectedCategory);
-  await fetchFirestoreEvents();
-  setLoading(false);
-};
+    setLoading(true);
+    await fetchEvents(selectedCategory);
+    await fetchFirestoreEvents();
+    setLoading(false);
+  };
 
   const combinedEvents = getAllEvents();
 
@@ -214,32 +235,40 @@ export default function EventsScreen() {
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {combinedEvents.length > 0 ? (
           combinedEvents.map((event) => (
-            <TouchableOpacity
-              key={event.id}
-              style={styles.eventCard}
-              onPress={() => navigation.navigate("EventDetails", { event })}
-            >
-              <View style={styles.eventHeader}>
-                <Text style={styles.eventTitle}>{event.name}</Text>
-                <Text style={styles.eventDate}>
-                  {event.dates?.start?.localDate} • {event.dates?.start?.localTime || ""}
-                </Text>
-              </View>
+            <View key={event.id} style={styles.eventCard}>
+              <TouchableOpacity onPress={() => navigation.navigate("EventDetails", { event })}>
+                <View style={styles.eventHeader}>
+                  <Text style={styles.eventTitle}>{event.name}</Text>
+                  <Text style={styles.eventDate}>
+                    {event.dates?.start?.localDate} • {event.dates?.start?.localTime || ""}
+                  </Text>
+                </View>
 
-              {event.images?.[0] && (
-                <Image source={{ uri: event.images[0].url }} style={styles.eventImage} resizeMode="cover" />
-              )}
+                {event.images?.[0] && (
+                  <Image source={{ uri: event.images[0].url }} style={styles.eventImage} resizeMode="cover" />
+                )}
 
-              <View style={styles.eventFooter}>
-                <Text style={styles.venueText}>{event._embedded?.venues?.[0]?.name}</Text>
+                <View style={styles.eventFooter}>
+                  <Text style={styles.venueText}>{event._embedded?.venues?.[0]?.name}</Text>
+                  <TouchableOpacity
+                    style={styles.rsvpButton}
+                    onPress={() => Alert.alert("RSVP", `You RSVPed for ${event.name}`)}
+                  >
+                    <Text style={styles.rsvpText}>RSVP HERE</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+
+              {/* Small Delete Icon */}
+              {firestoreEvents.some((e) => e.id === event.id) && (
                 <TouchableOpacity
-                  style={styles.rsvpButton}
-                  onPress={() => Alert.alert("RSVP", `You RSVPed for ${event.name}`)}
+                  style={styles.deleteButton}
+                  onPress={() => handleDeleteEvent(event.id)}
                 >
-                  <Text style={styles.rsvpText}>RSVP HERE</Text>
+                  <MaterialIcons name="delete" size={18} color="#fff" />
                 </TouchableOpacity>
-              </View>
-            </TouchableOpacity>
+              )}
+            </View>
           ))
         ) : (
           <Text style={styles.noEvents}>No events found.</Text>
@@ -250,6 +279,7 @@ export default function EventsScreen() {
       <TouchableOpacity style={styles.floatingButton} onPress={() => setModalVisible(true)}>
         <Text style={styles.floatingText}>+</Text>
       </TouchableOpacity>
+
 
       {/* Add Event Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -302,7 +332,6 @@ export default function EventsScreen() {
     </ImageBackground>
   );
 }
-
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
@@ -401,7 +430,10 @@ const styles = StyleSheet.create({
     borderRadius: 12, 
     marginBottom: 10 
   },
-  eventFooter: { alignItems: "center", gap: 6 },
+  eventFooter: { 
+    alignItems: "center", 
+    gap: 6 
+  },
   venueText: { 
     color: themecolors.primaryLight, 
     fontSize: 14 
@@ -416,6 +448,20 @@ const styles = StyleSheet.create({
   rsvpText: { 
     fontWeight: "700", 
     color: themecolors.text2 
+  },
+  
+   deleteButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,      
+    width: 34,
+    height: 34,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deleteText: {
+    color: "#fff",
+    fontWeight: "700",
   },
   noEvents: { 
     color: themecolors.primaryLight, 
@@ -493,4 +539,5 @@ const styles = StyleSheet.create({
     fontWeight: "700", 
     fontSize: 16 
   },
+
 });
