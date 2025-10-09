@@ -235,7 +235,6 @@ export default function EventsScreen() {
             <TextInput placeholder="Time (HH:MM)" value={newEventTime} onChangeText={setNewEventTime} style={styles.modalInput} />
             <TextInput placeholder="Venue" value={newEventVenue} onChangeText={setNewEventVenue} style={styles.modalInput} />
 
-            {/* Local Image Picker */}
             <TouchableOpacity style={[styles.modalInput, { justifyContent: "center", alignItems: "center" }]} onPress={pickImage}>
               {newEventImageUri ? (
                 <Image source={{ uri: newEventImageUri }} style={{ width: 100, height: 100, borderRadius: 12 }} />
@@ -255,7 +254,6 @@ export default function EventsScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Bottom Tabs */}
       <View style={styles.bottomContainer}>
         <TouchableOpacity onPress={handleLogout} style={styles.bottomtabsbuttons}>
           <Image style={styles.bottomtabsimages} source={require("../assets/pictures/logouttab-removebg-preview.png")} />
@@ -271,7 +269,6 @@ export default function EventsScreen() {
   );
 }
 
-// Keep your existing styles...
 
 const styles = StyleSheet.create({
   container: { flex: 1, alignItems: "center", justifyContent: "center" },
