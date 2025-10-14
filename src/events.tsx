@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18, 
     borderRadius: 20, 
     backgroundColor: "rgba(255,255,255,0.15)", 
-    marginHorizontal: 5 
+    marginHorizontal: 5,
   },
   activeTab: { 
     backgroundColor: themecolors.accent 
