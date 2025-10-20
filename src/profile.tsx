@@ -199,6 +199,10 @@ const Profilepage = () => {
               <Text style={styles.logoutText}>Edit Profile</Text>
             </TouchableOpacity>
 
+            <TouchableOpacity style={styles.logoutButton} onPress={() => navigation.navigate("RSVP")}>
+              <Text style={styles.logoutText}>View RSVP</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
               <Text style={styles.logoutText}>Logout</Text>
             </TouchableOpacity>

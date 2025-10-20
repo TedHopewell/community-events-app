@@ -60,6 +60,9 @@ export default function RSVPEventsScreen() {
       <View style={styles.header}>
         <Text style={styles.headerText}>My RSVP'd Events</Text>
       </View>
+       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backText}>←</Text>
+        </TouchableOpacity>
 
       <ScrollView style={styles.scrollContainer}>
         {rsvpEvents.length > 0 ? (
