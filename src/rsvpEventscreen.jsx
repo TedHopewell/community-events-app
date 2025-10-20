@@ -11,7 +11,7 @@ import {
   ImageBackground,
 } from "react-native";
 import { auth, db } from "./config/firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, arrayRemove } from "firebase/firestore";
 import themecolors from "../themes/themecolors";
 import { useNavigation } from "@react-navigation/native";
 
@@ -21,6 +21,7 @@ export default function RSVPEventsScreen() {
   const user = auth.currentUser;
   const navigation = useNavigation();
 
+  // Fetch all RSVPed events for current user
   const fetchRSVPEvents = async () => {
     setLoading(true);
     try {
@@ -30,7 +31,6 @@ export default function RSVPEventsScreen() {
         ...doc.data(),
       }));
 
-      // Filter events where current user has RSVPed
       const userEmail = user?.email;
       const filteredEvents = events.filter((event) => event.rsvps?.includes(userEmail));
       setRsvpEvents(filteredEvents);
@@ -40,6 +40,37 @@ export default function RSVPEventsScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Un-RSVP (Remove user from event rsvps array)
+  const handleDeleteRSVP = async (eventId, eventName) => {
+    Alert.alert(
+      "Cancel RSVP",
+      `Are you sure you want to cancel your RSVP for ${eventName}?`,
+      [
+        { text: "No", style: "cancel" },
+        {
+          text: "Yes, Cancel",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const eventRef = doc(db, "userEvents", eventId);
+              await updateDoc(eventRef, {
+                rsvps: arrayRemove(user.email),
+              });
+
+              // Update UI instantly
+              setRsvpEvents((prevEvents) => prevEvents.filter((e) => e.id !== eventId));
+
+              Alert.alert("Canceled", `You have canceled your RSVP for ${eventName}.`);
+            } catch (error) {
+              console.error("Error removing RSVP:", error);
+              Alert.alert("Error", "Failed to cancel RSVP. Please try again.");
+            }
+          },
+        },
+      ]
+    );
   };
 
   useEffect(() => {
@@ -60,9 +91,11 @@ export default function RSVPEventsScreen() {
       <View style={styles.header}>
         <Text style={styles.headerText}>My RSVP'd Events</Text>
       </View>
-       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Text style={styles.backText}>←</Text>
-        </TouchableOpacity>
+
+      {/* Back button */}
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Text style={styles.backText}>←</Text>
+      </TouchableOpacity>
 
       <ScrollView style={styles.scrollContainer}>
         {rsvpEvents.length > 0 ? (
@@ -78,16 +111,24 @@ export default function RSVPEventsScreen() {
               )}
 
               <Text style={styles.venue}>{event._embedded?.venues?.[0]?.name}</Text>
+
+              {/* Delete / Cancel RSVP button */}
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => handleDeleteRSVP(event.id, event.name)}
+              >
+                <Text style={styles.deleteText}>Cancel RSVP</Text>
+              </TouchableOpacity>
             </View>
           ))
         ) : (
           <View style={styles.noEventsContainer}>
             <Text style={styles.noEventsText}>You haven’t RSVPed for any events yet.</Text>
             <TouchableOpacity
-              style={styles.backButton}
+              style={styles.browseButton}
               onPress={() => navigation.navigate("Homepage")}
             >
-              <Text style={styles.backText} >Browse Events</Text>
+              <Text style={styles.browseText}>Browse Events</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -121,6 +162,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingHorizontal: 15,
     paddingTop: 20,
+    paddingBottom:30,
   },
   card: {
     backgroundColor: "rgba(255,255,255,0.9)",
@@ -152,6 +194,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#333",
   },
+  deleteButton: {
+    backgroundColor: themecolors.accent,
+    marginTop: 10,
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  deleteText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
   noEventsContainer: {
     alignItems: "center",
     marginTop: 100,
@@ -161,14 +214,29 @@ const styles = StyleSheet.create({
     color: "#fff",
     marginBottom: 20,
   },
-  backButton: {
+  browseButton: {
     backgroundColor: themecolors.accent,
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 10,
   },
+  browseText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  backButton: {
+    backgroundColor: themecolors.accent,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 25,
+    position: "absolute",
+    top: 70,
+    left: 15,
+    zIndex: 10,
+  },
   backText: {
     color: "#fff",
+    fontSize: 18,
     fontWeight: "bold",
   },
 });
