@@ -7,12 +7,13 @@ import {
   TouchableOpacity, 
   Dimensions, 
   Alert, 
-  ActivityIndicator 
+  ActivityIndicator, 
+  TextInput 
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { auth } from "./config/firebaseConfig";
 import themecolors from '../themes/themecolors';
-import { signOut, updateProfile } from "firebase/auth";
+import { signOut, updateProfile, updateEmail } from "firebase/auth";
 import * as ImagePicker from 'expo-image-picker';
 
 const { width } = Dimensions.get('window');
@@ -20,8 +21,13 @@ const { width } = Dimensions.get('window');
 const Profilepage = () => {
   const navigation = useNavigation();
   const user = auth.currentUser;
+
   const [uploading, setUploading] = useState(false);
   const [photoURL, setPhotoURL] = useState(user?.photoURL || 'https://via.placeholder.com/150');
+  const [editing, setEditing] = useState(false);
+  const [displayName, setDisplayName] = useState(user?.displayName || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [loading, setLoading] = useState(false);
 
   // Refresh Events screen after updating image
   const refreshEventsScreen = () => {
@@ -48,14 +54,12 @@ const Profilepage = () => {
   };
 
   const pickImage = async () => {
-    // Ask for permission
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert("Permission Denied", "We need camera roll permissions to update your profile picture.");
       return;
     }
 
-    // Open picker
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [1, 1],
@@ -67,12 +71,9 @@ const Profilepage = () => {
       setUploading(true);
 
       try {
-        // Update Firebase user profile
         await updateProfile(auth.currentUser!, { photoURL: uri });
         setPhotoURL(uri);
         Alert.alert("Success", "Profile picture updated!");
-
-        // Trigger a refresh in Events screen
         refreshEventsScreen();
       } catch (error) {
         console.error(error);
@@ -80,6 +81,30 @@ const Profilepage = () => {
       } finally {
         setUploading(false);
       }
+    }
+  };
+
+  const handleSave = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      // Update display name
+      if (displayName !== user.displayName) {
+        await updateProfile(user, { displayName });
+      }
+
+      // Update email
+      if (email !== user.email) {
+        await updateEmail(user, email);
+      }
+
+      Alert.alert("Success", "Profile updated successfully!");
+      setEditing(false);
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert("Error", error.message || "Failed to update profile.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -107,30 +132,78 @@ const Profilepage = () => {
         </View>
 
         <Text style={styles.welcomeText}>
-          Welcome <Text style={styles.username}>{user?.displayName}</Text> 👋
+          Welcome <Text style={styles.username}>{displayName}</Text> 👋
         </Text>
         <Text style={styles.subtitle}>It’s good to have you back!</Text>
 
+        {/* Editable fields */}
         <View style={styles.infoCard}>
-          <Text style={styles.infoText}>{user?.email}</Text>
+          {editing ? (
+            <TextInput
+              value={displayName}
+              onChangeText={setDisplayName}
+              style={styles.input}
+              placeholder="Display Name"
+            />
+          ) : (
+            <Text style={styles.infoText}>{displayName}</Text>
+          )}
         </View>
 
         <View style={styles.infoCard}>
-          <Text style={styles.infoText}>{user?.displayName}</Text>
+          {editing ? (
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              style={styles.input}
+              placeholder="Email"
+              keyboardType="email-address"
+            />
+          ) : (
+            <Text style={styles.infoText}>{email}</Text>
+          )}
         </View>
 
         <View style={styles.messageCard}>
           <Text style={styles.messageText}>
-            Thank you <Text style={styles.highlight}>@{user?.displayName}</Text> for trusting us. 🎉
+            Thank you <Text style={styles.highlight}>@{displayName}</Text> for trusting us. 🎉
           </Text>
         </View>
       </View>
 
       {/* Bottom Section */}
       <View style={styles.bottomView}>
-        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutText}>Logout</Text>
-        </TouchableOpacity>
+        {editing ? (
+          <View style={{ flexDirection: 'column', gap: 10 }}>
+            <TouchableOpacity
+              style={[styles.logoutButton, { backgroundColor: 'grey' }]}
+              onPress={() => setEditing(false)}
+            >
+              <Text style={styles.logoutText}>Cancel</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.logoutButton} onPress={handleSave}>
+              {loading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Text style={styles.logoutText}>Save</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <>
+            <TouchableOpacity
+              style={[styles.logoutButton, { backgroundColor: themecolors.primary }]}
+              onPress={() => setEditing(true)}
+            >
+              <Text style={styles.logoutText}>Edit Profile</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+              <Text style={styles.logoutText}>Logout</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   );
@@ -139,10 +212,11 @@ const Profilepage = () => {
 export default Profilepage;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
+  container: { 
+    flex: 1, 
+    backgroundColor: '#fff', 
+    alignItems: 'center' 
+
   },
   topView: {
     width: '100%',
@@ -154,29 +228,31 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 55,
-    padding: 5,
+  backButton: { 
+    position: 'absolute', 
+    left: 20, 
+    top: 55, 
+    padding: 5 
   },
-  backText: {
-    fontSize: 30,
-    fontWeight:'700',
-    color: '#fff',
+  backText: { 
+    fontSize: 30, 
+    fontWeight: '700', 
+    color: '#fff' 
   },
-  title: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#fff',
+  title: { 
+    fontSize: 20, 
+    fontWeight: '700', 
+    color: '#fff' 
   },
-  midView: {
-    flex: 1,
-    alignItems: 'center',
-    marginTop: -40,
+  midView: { 
+    flex: 1, 
+    alignItems: 'center', 
+    marginTop: -40 
+
   },
-  imageWrapper: {
-    position: 'relative',
+  imageWrapper: { 
+    position: 'relative' 
+
   },
   profileImage: {
     height: 150,
@@ -194,23 +270,23 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 8,
   },
-  editIcon: {
-    color: '#fff',
-    fontWeight: 'bold',
+  editIcon: { 
+    color: '#fff', 
+    fontWeight: 'bold' 
   },
-  welcomeText: {
-    fontSize: 18,
-    color: '#444',
-    marginTop: 20,
+  welcomeText: { 
+    fontSize: 18, 
+    color: '#444', 
+    marginTop: 20 
   },
-  username: {
-    color: '#000',
-    fontWeight: 'bold',
+  username: { 
+    color: '#000', 
+    fontWeight: 'bold' 
   },
-  subtitle: {
-    color: 'grey',
-    fontSize: 14,
-    marginBottom: 20,
+  subtitle: { 
+    color: 'grey', 
+    fontSize: 14, 
+    marginBottom: 20 
   },
   infoCard: {
     width: width * 0.85,
@@ -223,9 +299,14 @@ const styles = StyleSheet.create({
     padding: 15,
     marginTop: 10,
   },
-  infoText: {
-    fontSize: 16,
-    color: '#333',
+  infoText: { fontSize: 16, 
+    color: '#333' 
+  },
+  input: { fontSize: 16, 
+    color: '#333', 
+    borderBottomWidth: 1, 
+    borderColor: '#ccc', 
+    paddingVertical: 4 
   },
   messageCard: {
     width: width * 0.85,
@@ -238,18 +319,19 @@ const styles = StyleSheet.create({
     padding: 15,
     marginTop: 20,
   },
-  messageText: {
-    textAlign: 'center',
-    color: '#333',
+  messageText: { 
+    textAlign: 'center', 
+    color: '#333' 
   },
-  highlight: {
-    color: themecolors.accent,
-    fontWeight: 'bold',
+  highlight: { 
+    color: themecolors.accent, 
+    fontWeight: 'bold' 
   },
-  bottomView: {
-    width: '100%',
-    alignItems: 'center',
-    bottom: 130,
+  bottomView: { 
+    width: '100%', 
+    alignItems: 'center', 
+    bottom: 130, 
+    gap: 10 
   },
   logoutButton: {
     width: width * 0.6,
@@ -258,9 +340,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
   },
-  logoutText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 16,
+  logoutText: { 
+    color: '#fff', 
+    fontWeight: 'bold', 
+    fontSize: 16 
   },
 });
