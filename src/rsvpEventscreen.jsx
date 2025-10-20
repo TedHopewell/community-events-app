@@ -1,108 +1,171 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, Dimensions, ActivityIndicator } from 'react-native';
-import { auth, db } from './config/firebaseConfig';
-import { collection, query, where, getDocs } from "firebase/firestore";
-import themecolors from '../themes/themecolors';
+import React, { useEffect, useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+  ImageBackground,
+} from "react-native";
+import { auth, db } from "./config/firebaseConfig";
+import { collection, getDocs } from "firebase/firestore";
+import themecolors from "../themes/themecolors";
+import { useNavigation } from "@react-navigation/native";
 
-const { width } = Dimensions.get('window');
-
-const RSVPEventsScreen = () => {
-  const [events, setEvents] = useState([]);
+export default function RSVPEventsScreen() {
+  const [rsvpEvents, setRsvpEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const user = auth.currentUser;
+  const navigation = useNavigation();
+
+  const fetchRSVPEvents = async () => {
+    setLoading(true);
+    try {
+      const snapshot = await getDocs(collection(db, "userEvents"));
+      const events = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      // Filter events where current user has RSVPed
+      const userEmail = user?.email;
+      const filteredEvents = events.filter((event) => event.rsvps?.includes(userEmail));
+      setRsvpEvents(filteredEvents);
+    } catch (error) {
+      console.error("Error fetching RSVP events:", error);
+      Alert.alert("Error", "Failed to load your RSVP events.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchRSVPEvents = async () => {
-      try {
-        const eventsRef = collection(db, 'events');
-        const q = query(eventsRef, where('rsvps', 'array-contains', user.email)); // Make sure RSVPs are stored as emails
-        const querySnapshot = await getDocs(q);
-        const eventsList = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setEvents(eventsList);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchRSVPEvents();
   }, []);
 
-  const renderItem = ({ item }) => (
-    <View style={styles.eventCard}>
-      {item.image ? (
-        <Image source={{ uri: item.image }} style={styles.eventImage} />
-      ) : null}
-      <Text style={styles.eventTitle}>{item.name}</Text>
-      <Text style={styles.eventLocation}>{item._embedded?.venues?.[0]?.name || 'Location not set'}</Text>
-      <Text style={styles.eventDescription}>{item.description}</Text>
-    </View>
-  );
-
   if (loading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+      <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color={themecolors.accent} />
-      </View>
-    );
-  }
-
-  if (events.length === 0) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={{ fontSize: 16, color: '#555' }}>You have not RSVPed to any events yet.</Text>
+        <Text style={{ color: "#fff", marginTop: 10 }}>Loading RSVP events...</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={events}
-        keyExtractor={(item) => item.id}
-        renderItem={renderItem}
-        contentContainerStyle={{ padding: 10 }}
-      />
-    </View>
-  );
-};
+    <ImageBackground style={styles.container} source={require("../assets/pictures/bg6.jpg")}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>My RSVP'd Events</Text>
+      </View>
 
-export default RSVPEventsScreen;
+      <ScrollView style={styles.scrollContainer}>
+        {rsvpEvents.length > 0 ? (
+          rsvpEvents.map((event) => (
+            <View key={event.id} style={styles.card}>
+              <Text style={styles.eventName}>{event.name}</Text>
+              <Text style={styles.eventDate}>
+                {event.dates?.start?.localDate} • {event.dates?.start?.localTime || ""}
+              </Text>
+
+              {event.images?.[0] && (
+                <Image source={{ uri: event.images[0].url }} style={styles.eventImage} resizeMode="cover" />
+              )}
+
+              <Text style={styles.venue}>{event._embedded?.venues?.[0]?.name}</Text>
+            </View>
+          ))
+        ) : (
+          <View style={styles.noEventsContainer}>
+            <Text style={styles.noEventsText}>You haven’t RSVPed for any events yet.</Text>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.navigate("EventsScreen")}
+            >
+              <Text style={styles.backText}>Browse Events</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </ScrollView>
+    </ImageBackground>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: themecolors.background,
   },
-  eventCard: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 2,
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: themecolors.background,
+  },
+  header: {
+    paddingTop: 60,
+    paddingBottom: 20,
+    alignItems: "center",
+    backgroundColor: "rgba(0,0,0,0.6)",
+  },
+  headerText: {
+    color: "#fff",
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  scrollContainer: {
+    paddingHorizontal: 15,
+    paddingTop: 20,
+  },
+  card: {
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderRadius: 15,
     marginBottom: 15,
-    padding: 10,
+    padding: 15,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  eventName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  eventDate: {
+    fontSize: 14,
+    color: "#555",
+    marginVertical: 5,
   },
   eventImage: {
-    width: '100%',
+    width: "100%",
     height: 180,
     borderRadius: 10,
-    marginBottom: 10,
+    marginVertical: 10,
   },
-  eventTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  eventLocation: {
+  venue: {
     fontSize: 14,
-    color: 'grey',
-    marginVertical: 4,
+    color: "#333",
   },
-  eventDescription: {
-    fontSize: 14,
-    color: '#555',
+  noEventsContainer: {
+    alignItems: "center",
+    marginTop: 100,
+  },
+  noEventsText: {
+    fontSize: 16,
+    color: "#fff",
+    marginBottom: 20,
+  },
+  backButton: {
+    backgroundColor: themecolors.accent,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+  },
+  backText: {
+    color: "#fff",
+    fontWeight: "bold",
   },
 });
