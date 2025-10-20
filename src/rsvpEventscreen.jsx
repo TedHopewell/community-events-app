@@ -85,9 +85,9 @@ export default function RSVPEventsScreen() {
             <Text style={styles.noEventsText}>You haven’t RSVPed for any events yet.</Text>
             <TouchableOpacity
               style={styles.backButton}
-              onPress={() => navigation.navigate("EventsScreen")}
+              onPress={() => navigation.navigate("Homepage")}
             >
-              <Text style={styles.backText}>Browse Events</Text>
+              <Text style={styles.backText} >Browse Events</Text>
             </TouchableOpacity>
           </View>
         )}
