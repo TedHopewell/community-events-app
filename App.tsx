@@ -6,6 +6,7 @@ import Signup from './src/signup';
 import EventsScreen from './src/events';
 import CreateEventScreen from './src/createevent';
 import ProfileScreen from './src/profile';
+import RSVPEventsScreen from './src/rsvpEventscreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -20,6 +21,8 @@ export default function App() {
         <Stack.Screen name="CreateEvent" component={CreateEventScreen} />
         <Stack.Screen name="Login" component={Loginpage} />
         <Stack.Screen name="Signup" component={Signup} />
+        <Stack.Screen name="RSVP" component={RSVPEventsScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

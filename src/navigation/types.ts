@@ -5,4 +5,5 @@ export type RootStackParamList = {
   Homepage: undefined; 
   CreateEvent: undefined;
   Profilepage: undefined;
+  RSVPEventsScreen: undefined;
 };

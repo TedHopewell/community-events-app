@@ -22,7 +22,15 @@ import { signOut } from "firebase/auth";
 import { auth, db } from "./config/firebaseConfig";
 import themecolors from "../themes/themecolors";
 import { MaterialIcons } from "@expo/vector-icons";
-import { collection, addDoc, getDocs, deleteDoc, doc } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+  arrayUnion,
+} from "firebase/firestore";
 
 const { width: deviceWidth } = Dimensions.get("window");
 
@@ -87,7 +95,7 @@ export default function EventsScreen() {
           try {
             await signOut(auth);
             Alert.alert("Logged Out", "You have been signed out successfully.");
-            navigation.navigate("Login" as never);
+            navigation.navigate("Login");
           } catch (error) {
             console.error(error);
             Alert.alert("Error", "Something went wrong while logging out.");
@@ -128,7 +136,7 @@ export default function EventsScreen() {
 
     const newEvent = {
       name: newEventName,
-      category: selectedCategory, // assign tab category
+      category: selectedCategory,
       dates: { start: { localDate: newEventDate, localTime: newEventTime } },
       _embedded: {
         venues: [
@@ -139,6 +147,7 @@ export default function EventsScreen() {
         ],
       },
       images: newEventImageUri ? [{ url: newEventImageUri }] : undefined,
+      rsvps: [], // ✅ initialize empty RSVP array
     };
 
     try {
@@ -154,6 +163,28 @@ export default function EventsScreen() {
     } catch (error) {
       console.error("Error saving event to Firestore:", error);
       Alert.alert("Error", "Failed to save event.");
+    }
+  };
+
+  // --- RSVP Logic ---
+  const handleRSVP = async (event) => {
+    if (!user?.email) {
+      Alert.alert("Login required", "You need to log in to RSVP.");
+      return;
+    }
+
+    try {
+      const eventRef = doc(db, "userEvents", event.id);
+      await updateDoc(eventRef, {
+        rsvps: arrayUnion(user.email),
+      });
+
+      Alert.alert("RSVP Confirmed", `You have successfully RSVPed for ${event.name}`, [
+        { text: "OK", onPress: () => navigation.navigate("RSVP") },
+      ]);
+    } catch (error) {
+      console.error("Error adding RSVP:", error);
+      Alert.alert("Error", "Failed to RSVP. Please try again.");
     }
   };
 
@@ -198,7 +229,6 @@ export default function EventsScreen() {
     setLoading(false);
   };
 
-  // --- Filter events according to selected tab ---
   const filteredFirestoreEvents =
     selectedCategory === "All"
       ? firestoreEvents
@@ -246,30 +276,27 @@ export default function EventsScreen() {
         {combinedEvents.length > 0 ? (
           combinedEvents.map((event) => (
             <View key={event.id} style={styles.eventCard}>
-              <TouchableOpacity onPress={() => navigation.navigate("EventDetails", { event })}>
-                <View style={styles.eventHeader}>
-                  <Text style={styles.eventTitle}>{event.name}</Text>
-                  <Text style={styles.eventDate}>
-                    {event.dates?.start?.localDate} • {event.dates?.start?.localTime || ""}
-                  </Text>
-                </View>
+              <View style={styles.eventHeader}>
+                <Text style={styles.eventTitle}>{event.name}</Text>
+                <Text style={styles.eventDate}>
+                  {event.dates?.start?.localDate} • {event.dates?.start?.localTime || ""}
+                </Text>
+              </View>
 
-                {event.images?.[0] && (
-                  <Image source={{ uri: event.images[0].url }} style={styles.eventImage} resizeMode="cover" />
-                )}
+              {event.images?.[0] && (
+                <Image source={{ uri: event.images[0].url }} style={styles.eventImage} resizeMode="cover" />
+              )}
 
-                <View style={styles.eventFooter}>
-                  <Text style={styles.venueText}>{event._embedded?.venues?.[0]?.name}</Text>
-                  <TouchableOpacity
-                    style={styles.rsvpButton}
-                    onPress={() => Alert.alert("RSVP", `You RSVPed for ${event.name}`)}
-                  >
-                    <Text style={styles.rsvpText}>RSVP HERE</Text>
-                  </TouchableOpacity>
-                </View>
-              </TouchableOpacity>
+              <View style={styles.eventFooter}>
+                <Text style={styles.venueText}>{event._embedded?.venues?.[0]?.name}</Text>
+                <TouchableOpacity
+                  style={styles.rsvpButton}
+                  onPress={() => handleRSVP(event)}
+                >
+                  <Text style={styles.rsvpText}>RSVP HERE</Text>
+                </TouchableOpacity>
+              </View>
 
-              {/* Small Delete Icon */}
               {firestoreEvents.some((e) => e.id === event.id) && (
                 <TouchableOpacity
                   style={styles.deleteButton}
