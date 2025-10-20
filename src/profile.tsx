@@ -193,7 +193,7 @@ const Profilepage = () => {
         ) : (
           <>
             <TouchableOpacity
-              style={[styles.logoutButton, { backgroundColor: themecolors.primary }]}
+              style={[styles.logoutButton, { backgroundColor: 'grey' }]}
               onPress={() => setEditing(true)}
             >
               <Text style={styles.logoutText}>Edit Profile</Text>
