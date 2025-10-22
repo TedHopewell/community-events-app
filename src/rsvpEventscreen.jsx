@@ -14,6 +14,8 @@ import { auth, db } from "./config/firebaseConfig";
 import { collection, getDocs, doc, updateDoc, arrayRemove } from "firebase/firestore";
 import themecolors from "../themes/themecolors";
 import { useNavigation } from "@react-navigation/native";
+import { signOut } from "firebase/auth";
+
 
 export default function RSVPEventsScreen() {
   const [rsvpEvents, setRsvpEvents] = useState([]);
@@ -40,6 +42,33 @@ export default function RSVPEventsScreen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const refreshPage = async () => {
+    setLoading(true);
+    await fetchEvents(selectedCategory);
+    await fetchFirestoreEvents();
+    setLoading(false);
+  };
+
+  
+  const handleLogout = () => {
+    Alert.alert("Confirm Logout", "Are you sure you want to log out?", [
+      { text: "❌", style: "cancel" },
+      {
+        text: "✅",
+        onPress: async () => {
+          try {
+            await signOut(auth);
+            Alert.alert("Logged Out", "You have been signed out successfully.");
+            navigation.navigate("Login");
+          } catch (error) {
+            console.error(error);
+            Alert.alert("Error", "Something went wrong while logging out.");
+          }
+        },
+      },
+    ]);
   };
 
   // Un-RSVP (Remove user from event rsvps array)
@@ -133,6 +162,18 @@ export default function RSVPEventsScreen() {
           </View>
         )}
       </ScrollView>
+      
+          <View style={styles.bottomContainer}>
+            <TouchableOpacity onPress={handleLogout} style={styles.bottomtabsbuttons}>
+              <Image style={styles.bottomtabsimages} source={require("../assets/pictures/logouttab-removebg-preview.png")} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("Homepage")} style={styles.bottomtabsbuttons}>
+              <Image style={styles.bottomtabsimages} source={require("../assets/pictures/hometab2-removebg-preview.png")} />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("Profilepage")} style={styles.bottomtabsbuttons}>
+              <Image style={styles.bottomtabsimages} source={require("../assets/pictures/profiletab-removebg-preview.png")} />
+            </TouchableOpacity>
+          </View>
     </ImageBackground>
   );
 }
@@ -238,5 +279,22 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  bottomContainer: { 
+    flexDirection: "row", 
+    justifyContent: "space-around", 
+    width: "100%", 
+    backgroundColor: "rgba(0,0,0,0.85)", 
+    paddingVertical: 45 
+  },
+  bottomtabsbuttons: { 
+    backgroundColor: themecolors.accent, 
+    padding: 12, 
+    borderRadius: 25, 
+    alignItems: "center" 
+  },
+  bottomtabsimages: { 
+    width: 30, 
+    height: 30 
   },
 });
