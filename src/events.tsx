@@ -31,6 +31,7 @@ import {
   updateDoc,
   arrayUnion,
 } from "firebase/firestore";
+import MapView, { Marker } from "react-native-maps"; // 🗺️ Added import
 
 const { width: deviceWidth } = Dimensions.get("window");
 
@@ -142,12 +143,12 @@ export default function EventsScreen() {
         venues: [
           {
             name: newEventVenue,
-            location: { latitude: -26.2041, longitude: 28.0473 },
+            location: { latitude: -26.2041, longitude: 28.0473 }, // 🗺️ Default location
           },
         ],
       },
       images: newEventImageUri ? [{ url: newEventImageUri }] : undefined,
-      rsvps: [], // ✅ initialize empty RSVP array
+      rsvps: [],
     };
 
     try {
@@ -166,7 +167,6 @@ export default function EventsScreen() {
     }
   };
 
-  // --- RSVP Logic ---
   const handleRSVP = async (event) => {
     if (!user?.email) {
       Alert.alert("Login required", "You need to log in to RSVP.");
@@ -188,7 +188,6 @@ export default function EventsScreen() {
     }
   };
 
-  // Delete Firestore Event
   const handleDeleteEvent = async (eventId) => {
     Alert.alert("Delete Event", "Are you sure you want to delete this event?", [
       { text: "❌", style: "cancel" },
@@ -243,7 +242,6 @@ export default function EventsScreen() {
 
   return (
     <ImageBackground style={styles.container} source={require("../assets/pictures/bg6.jpg")}>
-      {/* Top bar */}
       <View style={styles.topContainer}>
         <View style={styles.topTextContainer}>
           <View style={styles.usernameContainer}>
@@ -256,7 +254,6 @@ export default function EventsScreen() {
         </View>
       </View>
 
-      {/* Category Tabs */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryTabsContainer}>
         {categories.map((cat) => (
           <TouchableOpacity
@@ -271,7 +268,6 @@ export default function EventsScreen() {
         ))}
       </ScrollView>
 
-      {/* Events List */}
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         {combinedEvents.length > 0 ? (
           combinedEvents.map((event) => (
@@ -289,19 +285,38 @@ export default function EventsScreen() {
 
               <View style={styles.eventFooter}>
                 <Text style={styles.venueText}>{event._embedded?.venues?.[0]?.name}</Text>
-                <TouchableOpacity
-                  style={styles.rsvpButton}
-                  onPress={() => handleRSVP(event)}
-                >
+                <TouchableOpacity style={styles.rsvpButton} onPress={() => handleRSVP(event)}>
                   <Text style={styles.rsvpText}>RSVP HERE</Text>
                 </TouchableOpacity>
               </View>
 
+              {/* 🗺️ Embedded Map */}
+              {event._embedded?.venues?.[0]?.location && (
+                <View style={styles.mapContainer}>
+                  <MapView
+                    style={styles.map}
+                    initialRegion={{
+                      latitude: parseFloat(event._embedded.venues[0].location.latitude),
+                      longitude: parseFloat(event._embedded.venues[0].location.longitude),
+                      latitudeDelta: 0.01,
+                      longitudeDelta: 0.01,
+                    }}
+                    scrollEnabled={false}
+                    zoomEnabled={false}
+                  >
+                    <Marker
+                      coordinate={{
+                        latitude: parseFloat(event._embedded.venues[0].location.latitude),
+                        longitude: parseFloat(event._embedded.venues[0].location.longitude),
+                      }}
+                      title={event._embedded.venues[0].name}
+                    />
+                  </MapView>
+                </View>
+              )}
+
               {firestoreEvents.some((e) => e.id === event.id) && (
-                <TouchableOpacity
-                  style={styles.deleteButton}
-                  onPress={() => handleDeleteEvent(event.id)}
-                >
+                <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteEvent(event.id)}>
                   <MaterialIcons name="delete" size={18} color="#fff" />
                 </TouchableOpacity>
               )}
@@ -328,10 +343,7 @@ export default function EventsScreen() {
             <TextInput placeholder="Time (HH:MM)" value={newEventTime} onChangeText={setNewEventTime} style={styles.modalInput} />
             <TextInput placeholder="Venue" value={newEventVenue} onChangeText={setNewEventVenue} style={styles.modalInput} />
 
-            <TouchableOpacity
-              style={[styles.modalInput, { justifyContent: "center", alignItems: "center" }]}
-              onPress={pickImage}
-            >
+            <TouchableOpacity style={[styles.modalInput, { justifyContent: "center", alignItems: "center" }]} onPress={pickImage}>
               {newEventImageUri ? (
                 <Image source={{ uri: newEventImageUri }} style={{ width: 100, height: 100, borderRadius: 12 }} />
               ) : (
@@ -353,7 +365,6 @@ export default function EventsScreen() {
         </KeyboardAvoidingView>
       </Modal>
 
-      {/* Bottom Tabs */}
       <View style={styles.bottomContainer}>
         <TouchableOpacity onPress={handleLogout} style={styles.bottomtabsbuttons}>
           <Image style={styles.bottomtabsimages} source={require("../assets/pictures/logouttab-removebg-preview.png")} />
@@ -390,54 +401,65 @@ const styles = StyleSheet.create({
     flexDirection: "row", 
     justifyContent: "space-between", 
     alignItems: "center" 
+
   },
   usernameContainer: { 
     flexDirection: "row", 
     alignItems: "center", 
     gap: 4 
+    
   },
   welcometext: { 
     color: themecolors.primaryLight, 
     fontSize: 28, 
     fontWeight: "700" 
+    
   },
   name: { 
     color: themecolors.primaryLight, 
     fontSize: 24, 
     fontWeight: "600" 
+
   },
   profilePic: { 
     height: 50, 
     width: 50, 
     borderRadius: 25, 
     backgroundColor: "#ccc" 
+
   },
   categoryTabsContainer: { 
     flexGrow: 0, 
     marginVertical: 10, 
     paddingHorizontal: 10 
+    
   },
   categoryTab: { 
     paddingVertical: 8, 
     paddingHorizontal: 18, 
     borderRadius: 20, 
     backgroundColor: "rgba(255,255,255,0.15)", 
-    marginHorizontal: 5,
+    marginHorizontal: 5 
+    
   },
   activeTab: { 
     backgroundColor: themecolors.accent 
+    
   },
   categoryText: { 
     color: themecolors.primaryLight, 
     fontWeight: "600" 
+    
   },
   activeCategoryText: { 
     color: "#000" 
+    
   },
   scrollContainer: { 
     flex: 1, 
     width: deviceWidth - 40, 
     marginBottom: 20 
+    
   },
   eventCard: { 
     backgroundColor: "rgba(255,255,255,0.1)", 
@@ -448,32 +470,39 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2, 
     shadowRadius: 6, 
     elevation: 4 
+    
   },
   eventHeader: { 
     marginBottom: 8 
+    
   },
   eventTitle: { 
     color: themecolors.primaryLight, 
     fontWeight: "700", 
     fontSize: 18 
+    
   },
   eventDate: { 
     color: "#ccc", 
     fontSize: 14 
+    
   },
   eventImage: { 
     width: "100%", 
     height: 180, 
     borderRadius: 12, 
     marginBottom: 10 
+    
   },
   eventFooter: { 
     alignItems: "center", 
     gap: 6 
+    
   },
   venueText: { 
     color: themecolors.primaryLight, 
     fontSize: 14 
+    
   },
   rsvpButton: { 
     backgroundColor: themecolors.accent, 
@@ -481,47 +510,51 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, 
     borderRadius: 50, 
     marginTop: 8 
+    
   },
   rsvpText: { 
     fontWeight: "700", 
     color: themecolors.text2 
+    
   },
-  
-   deleteButton: {
-    position: "absolute",
-    top: 10,
-    right: 10,      
-    width: 34,
-    height: 34,
-    alignItems: "center",
-    justifyContent: "center",
+  mapContainer: { 
+    width: "100%", 
+    height: 150, 
+    borderRadius: 12, 
+    overflow: "hidden", 
+    marginTop: 10 
+    
   },
-  deleteText: {
-    color: themecolors.primaryLight,
-    fontWeight: "700",
+  map: { flex: 1 },
+  deleteButton: { 
+    position: "absolute", 
+    top: 10, 
+    right: 10, 
+    width: 34, 
+    height: 34, 
+    alignItems: "center", 
+    justifyContent: "center" 
+    
   },
   noEvents: { 
-    color: themecolors.primaryLight, 
-    textAlign: "center", 
-    marginTop: 20 
-  },
+    color: themecolors.primaryLight, textAlign: "center", marginTop: 20 },
   bottomContainer: { 
     flexDirection: "row", 
     justifyContent: "space-around", 
     width: "100%", 
     backgroundColor: "rgba(0,0,0,0.85)", 
     paddingVertical: 45 
+    
   },
   bottomtabsbuttons: { 
     backgroundColor: themecolors.accent, 
     padding: 12, 
     borderRadius: 25, 
     alignItems: "center" 
+    
   },
   bottomtabsimages: { 
-    width: 30, 
-    height: 30 
-  },
+    width: 30, height: 30 },
   floatingButton: { 
     position: "absolute", 
     bottom: 120, 
@@ -534,47 +567,46 @@ const styles = StyleSheet.create({
     justifyContent: "center", 
     elevation: 6, 
     zIndex: 999 
+    
   },
   floatingText: { 
-    color: themecolors.primaryLight, 
-    fontSize: 32, 
-    fontWeight: "bold" 
+    color: themecolors.text2, 
+    fontSize: 28, 
+    fontWeight: "900" 
+    
   },
   modalContainer: { 
     flex: 1, 
     justifyContent: "center", 
     alignItems: "center", 
     backgroundColor: "rgba(0,0,0,0.5)" 
+    
   },
   modalContent: { 
-    width: deviceWidth - 40, 
-    backgroundColor: themecolors.primaryLight, 
-    padding: 20, 
-    borderRadius: 14 
-  },
+    backgroundColor: "#fff", borderRadius: 12, padding: 20, width: "85%" },
   modalHeading: { 
-    fontSize: 22, 
+    fontSize: 18, 
     fontWeight: "700", 
-    marginBottom: 20, 
-    textAlign: "center" 
+    marginBottom: 12, 
+    color: "#000" 
+    
   },
   modalInput: { 
     borderWidth: 1, 
     borderColor: "#ccc", 
-    borderRadius: 12, 
-    padding: 12, 
-    marginBottom: 12 
+    borderRadius: 8, 
+    padding: 10, 
+    marginBottom: 10 
+    
   },
   modalButton: { 
     backgroundColor: themecolors.accent, 
+    borderRadius: 8, 
     paddingVertical: 12, 
-    borderRadius: 50, 
     alignItems: "center" 
+    
   },
   modalButtonText: { 
-    color: themecolors.primaryLight, 
-    fontWeight: "700", 
-    fontSize: 16 
-  },
-
+    color: themecolors.text2, 
+    fontWeight: "700" },
 });
