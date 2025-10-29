@@ -290,7 +290,7 @@ export default function EventsScreen() {
                 </TouchableOpacity>
               </View>
 
-              {/* 🗺️ Embedded Map */}
+              {/* Embedded Map */}
               {event._embedded?.venues?.[0]?.location && (
                 <View style={styles.mapContainer}>
                   <MapView
@@ -518,11 +518,12 @@ const styles = StyleSheet.create({
     
   },
   mapContainer: { 
-    width: "100%", 
+    width: "80%", 
+    alignSelf:'center',
     height: 150, 
     borderRadius: 12, 
     overflow: "hidden", 
-    marginTop: 10 
+    marginTop: 10, 
     
   },
   map: { flex: 1 },
