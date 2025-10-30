@@ -395,18 +395,20 @@ const styles = StyleSheet.create({
   topContainer: { 
     width: deviceWidth - 40, 
     paddingTop: 40, 
-    marginBottom: 10 
+    marginBottom: 10
   },
   topTextContainer: { 
     flexDirection: "row", 
     justifyContent: "space-between", 
-    alignItems: "center" 
+    alignItems: "center",
+
 
   },
   usernameContainer: { 
     flexDirection: "row", 
     alignItems: "center", 
-    gap: 4 
+    gap: 4,
+    textAlign:'center'
     
   },
   welcometext: { 
@@ -501,7 +503,8 @@ const styles = StyleSheet.create({
   },
   venueText: { 
     color: themecolors.primaryLight, 
-    fontSize: 14 
+    fontSize: 14,
+    textAlign:'center',
     
   },
   rsvpButton: { 

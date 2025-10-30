@@ -234,6 +234,7 @@ const styles = StyleSheet.create({
   venue: {
     fontSize: 14,
     color: "#333",
+    textAlign:'center'
   },
   deleteButton: {
     backgroundColor: themecolors.accent,
